@@ -14,7 +14,7 @@ parseLen :: Parser Bool
 parseLen = switch
       (  long "length"
         <> short 'l'
-        <> help "print length of arguments instead of arguments themselves")
+        <> help "Print length of arguments instead of arguments themselves")
 
 parseOtherArgs :: Parser [String]
 parseOtherArgs = many (argument str (metavar "ARGS..."))
