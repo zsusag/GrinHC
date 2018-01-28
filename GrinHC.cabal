@@ -35,7 +35,8 @@ library
       src
   build-depends:
       base >=4.7 && <5,
-      lens, array, directory, unix, time, containers, unordered-containers
+      lens, array, directory, unix, time, containers, unordered-containers,
+      optparse-applicative
   default-language: Haskell2010
   ghc-options: -O2 -fwarn-unused-binds -fwarn-unused-imports -Wall
 
@@ -48,7 +49,7 @@ executable GrinHC
   ghc-options: -threaded -rtsopts -with-rtsopts=-N -O2 -fwarn-unused-binds -fwarn-unused-imports -Wall
   build-depends:
       GrinHC
-    , base >=4.7 && <5
+    , base >=4.7 && <5, optparse-applicative
   default-language: Haskell2010
 
 test-suite GrinHCTests
