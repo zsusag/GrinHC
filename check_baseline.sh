@@ -7,7 +7,7 @@ then
 fi
 
 TEST_DIR="$(realpath $1)"
-
+FAILED=false
 
 if [ -d $TEST_DIR ] && [ "$(basename $TEST_DIR)" == "assignment_01" ]
 then
@@ -22,8 +22,22 @@ then
         # Evaluate and diff the output
         eval $command > $tmpfile
         outfile="${file%.*}.out"
-        diff $tmpfile $outfile
+        diff_output="$(diff $tmpfile $outfile)"
+        if [ -n "$diff_output" ]
+        then
+            echo "$diff_output"
+            FAILED=true
+        fi
         rm $tmpfile
     done
     echo "Done testing in $TEST_DIR."
 fi
+
+# Exit with failure since a test failed
+if [ $FAILED = true ]
+then
+    exit 1
+fi
+
+# Exit successfully, indicating tests passed
+exit 0
