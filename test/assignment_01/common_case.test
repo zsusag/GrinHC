@@ -1,0 +1,1 @@
+stack exec GrinHC -- foo baz bar
