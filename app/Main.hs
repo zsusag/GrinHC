@@ -32,5 +32,5 @@ main :: IO ()
 main = do
   options <- execParser parseArgInfo
   case options of
-    Args True xs  -> mapM_ (putStrLn . show . length) xs
+    Args True xs  -> mapM_ (print . length) xs
     Args False xs -> mapM_ putStrLn xs
