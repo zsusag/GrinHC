@@ -1,0 +1,28 @@
+#!/bin/bash
+
+success=true
+
+# Run hlint on all the Haskell files within the project.
+hlint ../../
+
+if [ $? -ne 0 ]
+then
+    success=false
+fi
+
+# Run the test suite
+stack test
+
+if [ $? -ne 0 ]
+then
+    success=false
+fi
+
+# Check to see if both linting and testing passed. If not, exit 1.
+if [ $success = false ]
+then
+    exit 1
+fi
+
+# Else, exit 0.
+exit 0
