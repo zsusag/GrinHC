@@ -5,3 +5,4 @@ data Token
   | TokenRParen
   | TokenInt Int
   | TokenPlus
+  deriving (Show)
