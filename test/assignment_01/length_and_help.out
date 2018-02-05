@@ -1,9 +1,0 @@
-GrinHC: A compiler written in Haskell at Grinnell College
-
-Usage: GrinHC [-l|--length] [ARGS...]
-  A compiler written in Haskell for CSC-312 during 2018S
-
-Available options:
-  -l,--length              Print length of arguments instead of arguments
-                           themselves
-  -h,--help                Show this help text
