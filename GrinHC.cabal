@@ -28,7 +28,7 @@ source-repository head
 
 library
   exposed-modules:
-      Lib, Lexer, Token
+      Lib, Lexer, Token, AST, Parser
   build-tools:
       alex, happy
   hs-source-dirs:
