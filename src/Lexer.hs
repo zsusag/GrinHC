@@ -14,6 +14,10 @@ lexStringH ('+':xs) ts = lexStringH xs (TokenPlus:ts)
 lexStringH ('-':xs) ts = lexStringH xs (TokenSub:ts)
 lexStringH ('*':xs) ts = lexStringH xs (TokenMult:ts)
 lexStringH ('/':xs) ts = lexStringH xs (TokenDiv:ts)
+lexStringH ('<':'=':xs) ts = lexStringH xs (TokenLEQ:ts)
+lexStringH ('i':'f':xs) ts = lexStringH xs (TokenIf:ts)
+lexStringH ('t':'r':'u':'e':xs) ts = lexStringH xs (TokenBool True:ts)
+lexStringH ('f':'a':'l':'s':'e':xs) ts = lexStringH xs (TokenBool False:ts)
 lexStringH (x:xs) ts
   | isDigit x =
     let tokenInt = reverse $ lexInt xs [x] in
