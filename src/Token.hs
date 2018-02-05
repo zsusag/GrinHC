@@ -8,4 +8,7 @@ data Token
   | TokenSub
   | TokenMult
   | TokenDiv
+  | TokenBool Bool
+  | TokenLEQ
+  | TokenIf
   deriving (Show)
