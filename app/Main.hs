@@ -6,6 +6,8 @@ import System.IO
 import System.Directory
 
 import Lexer
+import Parser
+import AST
 
 newtype Args = Args
   { file      :: FilePath }
@@ -36,7 +38,8 @@ main = do
       handle <- tryOpen filePath
       contents <- hGetContents handle
       tokenStream <- lexString contents
-      print tokenStream
+      ast <- parseTokenStream tokenStream
+      print $ eval ast
       hClose handle
     where tryOpen filePath = case filePath of
             [] -> error ("Could not open file: File does not exist: " ++ filePath)
