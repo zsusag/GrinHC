@@ -11,6 +11,9 @@ lexStringH :: String -> [Token] -> [Token]
 lexStringH ('(':xs) ts = lexStringH xs (TokenLParen:ts)
 lexStringH (')':xs) ts = lexStringH xs (TokenRParen:ts)
 lexStringH ('+':xs) ts = lexStringH xs (TokenPlus:ts)
+lexStringH ('-':xs) ts = lexStringH xs (TokenSub:ts)
+lexStringH ('*':xs) ts = lexStringH xs (TokenMult:ts)
+lexStringH ('/':xs) ts = lexStringH xs (TokenDiv:ts)
 lexStringH (x:xs) ts
   | isDigit x =
     let tokenInt = reverse $ lexInt xs [x] in

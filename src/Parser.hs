@@ -11,10 +11,15 @@ parseTokenStream ts = let (ast,ts') = parseTokenStreamH ts
 
 
 parseTokenStreamH :: [Token] -> (Exp Int, [Token])
-parseTokenStreamH (TokenLParen:TokenPlus:ts) = let (e1,ts') = parseTokenStreamH ts
-                                                   (e2,ts'') = parseTokenStreamH ts'
+parseTokenStreamH (TokenLParen:ts) = let (e1,ts') = parseTokenStreamH $ tail ts
+                                         (e2,ts'') = parseTokenStreamH ts'
   in case ts'' of
-       (TokenRParen:ts''') -> (Add e1 e2, ts''')
+       (TokenRParen:ts''') -> case head ts of
+                                TokenPlus -> (Add e1 e2, ts''')
+                                TokenSub  -> (Sub e1 e2, ts''')
+                                TokenMult -> (Mul e1 e2, ts''')
+                                TokenDiv  -> (Div e1 e2, ts''')
+                                t         -> error ("Operator not supported: " ++ show t)
        _                   -> error "Parentheses mismatch."
 parseTokenStreamH (TokenInt x:ts) = (LitInt x, ts)
 parseTokenStreamH _ = error "Improper syntax."
