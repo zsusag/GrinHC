@@ -1,4 +1,9 @@
 #!/bin/bash
+COMMAND="stack"
+OPTIONS=" exec GrinHC -- "
+
+TEST_SUFFIX=".lsp"
+OUT_SUFFIX=".out"
 
 if [ -z "$1" ]
 then
@@ -9,18 +14,15 @@ fi
 TEST_DIR="$(realpath $1)"
 FAILED=false
 
-if [ -d $TEST_DIR ] && [ "$(basename $TEST_DIR)" == "assignment_01" ]
+if [ -d $TEST_DIR ] && [ "$(basename $TEST_DIR)" == "assignment_02" ]
 then
-    for file in $TEST_DIR/*.test; do
+    for file in $TEST_DIR/*.lsp; do
         echo "Checking $file..."
-        # Extract command from file.
-        command="$(cat $file)"
-
         # Create a tmp file within /tmp
         tmpfile=$(mktemp)
-
+        
         # Evaluate and diff the output
-        eval $command > $tmpfile
+        eval $COMMAND$OPTIONS$file > $tmpfile
         outfile="${file%.*}.out"
         diff_output="$(diff $tmpfile $outfile)"
         if [ -n "$diff_output" ]
