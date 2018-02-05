@@ -2,13 +2,13 @@ module Main where
 
 import Data.Semigroup((<>))
 import Options.Applicative
+import System.IO
+import System.Directory
 
-import Lib
+import Lexer
 
-
-data Args = Args
-  { len       :: Bool
-  , otherArgs :: [String] }
+newtype Args = Args
+  { file      :: FilePath }
 
 parseLen :: Parser Bool
 parseLen = switch
@@ -16,11 +16,11 @@ parseLen = switch
         <> short 'l'
         <> help "Print length of arguments instead of arguments themselves")
 
-parseOtherArgs :: Parser [String]
-parseOtherArgs = many (argument str (metavar "ARGS..."))
+parseFilePath :: Parser FilePath
+parseFilePath = argument str (metavar "FILE")
 
 parseArgs :: Parser Args
-parseArgs = Args <$> parseLen <*> parseOtherArgs
+parseArgs = Args <$> parseFilePath
 
 parseArgInfo :: ParserInfo Args
 parseArgInfo = info (parseArgs <**> helper)
@@ -32,5 +32,16 @@ main :: IO ()
 main = do
   options <- execParser parseArgInfo
   case options of
-    Args True xs  -> mapM_ (print . length) xs
-    Args False xs -> mapM_ putStrLn xs
+    Args filePath -> do
+      handle <- tryOpen filePath
+      contents <- hGetContents handle
+      tokenStream <- lexString contents
+      print tokenStream
+      hClose handle
+    where tryOpen filePath = case filePath of
+            [] -> error ("Could not open file: File does not exist: " ++ filePath)
+            _  -> do
+              exists <- doesFileExist filePath
+              if exists
+                then openFile filePath ReadMode
+                else error ("Could not open file: File does not exist: " ++ filePath)
