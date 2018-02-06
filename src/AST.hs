@@ -22,7 +22,7 @@ instance Show Exp where
   show (EIf e1 e2 e3) = "if " ++ show e1 ++ " then " ++ show e2
                         ++ " else " ++ show e3
   show (EFloat f)     = show f
-  show (ENaN)         = "NaN"
+  show ENaN           = "NaN"
 
 evaluate :: Exp -> String
 evaluate e = show simp
@@ -65,11 +65,9 @@ simplify (EMul e1 e2) = let e1' = simplify e1
 simplify (EDiv e1 e2) = let e1' = simplify e1
                             e2' = simplify e2
   in case (e1',e2') of
-       (EInt n1, EInt n2) -> if n2 /= 0 
-                             then EInt $ n1 `div` n2
-                             else if n1 == 0
-                                  then ENaN
-                                  else error "Divide By Zero: Cannot divide by Zero"
+       (EInt n1, EInt n2) | n2 /= 0 -> EInt $ n1 `div` n2
+                          | n1 == 0 -> ENaN
+                          | otherwise -> error "Divide By Zero: Cannot divide by Zero"
        (EFloat n1, EInt n2)   -> EFloat $ n1 / fromIntegral n2
        (EInt n1, EFloat n2)   -> EFloat $ fromIntegral n1 / n2
        (EFloat n1, EFloat n2) -> EFloat $ n1 / n2
