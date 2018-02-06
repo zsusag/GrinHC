@@ -1,6 +1,19 @@
 # GrinHC --- Zachary J. Susag
 A compiler written in [Haskell](https://www.haskell.org) for the CSC-312 course at Grinnell College during the Spring 2018 semester. Currently, it doesn't compile anything but will eventually compile LISP style code.
 
+## Supported Grammar
+Currently, GrinHC supports only the following grammar:
+```
+e ::= n | (+ e1 e2) | (- e1 e2) | (* e1 e2) | (/ e1 e2)
+    | true | false | (<= e1 e2) | (if e1 e2 e3)
+    | f | NaN
+```
+where `n` is an integer literal, `f` is a floating point literal of the form
+```
+[0-9]+.[0-9]+
+```
+and `NaN` as defined in [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754).
+
 ## Building and Running with Stack
 ### Installing Stack
 If `stack` is not already installed on your system you can install it using:
@@ -48,6 +61,18 @@ $ stack test
 ```
 
 ## Changelog
+### [assignment-01] --- 2018-02-06
+#### New Features
+* Add ability lex and parse basic S-Expressions in a LISP style syntax
+* Ability to read in file with code return evaluated code
+* Intepret S-Expressions with arithmetic operations, booleans, and floats
+* Augment testing suite with tests that cover entire grammar
+#### Changes to Existing Features
+* Remove `--length` command line option
+* Remove ability to print command line arguments given back to the user
+* Remove old testing suite which tested old features
+#### Known Bugs
+* None
 ### [assignment-01] --- 2018-01-29
 #### New Features
 * Created the project
@@ -60,3 +85,4 @@ $ stack test
 * N/A
 #### Known Bugs
 * None
+
