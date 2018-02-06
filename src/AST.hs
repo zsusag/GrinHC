@@ -8,7 +8,9 @@ data Exp = EInt Int
   | EBool Bool
   | ELeq Exp Exp
   | EIf Exp Exp Exp
-
+  | EFloat Float
+  | ENaN
+  
 instance Show Exp where
   show (EInt n)       = show n
   show (EAdd e1 e2)   = show e1 ++ " + " ++ show e2
@@ -19,44 +21,71 @@ instance Show Exp where
   show (ELeq e1 e2)   = show e1 ++ " <= " ++ show e2
   show (EIf e1 e2 e3) = "if " ++ show e1 ++ " then " ++ show e2
                         ++ " else " ++ show e3
+  show (EFloat f)     = show f
+  show (ENaN)         = "NaN"
+
 evaluate :: Exp -> String
-evaluate e = let simp = simplify e
-             in case simp of
-                  EInt n  -> show n
-                  EBool b -> show b
-                  _       -> error "Incomplete evaluation: Unable to evaluate S-Expression"
+evaluate e = show simp
+  where simp = simplify e
 
 simplify :: Exp -> Exp
 simplify (EAdd e1 e2) = let e1' = simplify e1
                             e2' = simplify e2
   in case (e1',e2') of
-       (EInt n1, EInt n2) -> EInt $ n1 + n2
-       _                  -> error ("Type Error: \"" ++ show (EAdd e1' e2') ++
-                                    "\" does not typecheck.")
+       (EInt n1, EInt n2)     -> EInt $ n1 + n2
+       (EFloat n1, EInt n2)   -> EFloat $ n1 + fromIntegral n2
+       (EInt n1, EFloat n2)   -> EFloat $ fromIntegral n1 + n2
+       (EFloat n1, EFloat n2) -> EFloat $ n1 + n2
+       (ENaN, _)              -> ENaN
+       (_, ENaN)              -> ENaN
+       _                      -> error ("Type Error: \"" ++ show (EAdd e1' e2') ++
+                                        "\" does not typecheck.")
 simplify (ESub e1 e2) = let e1' = simplify e1
                             e2' = simplify e2
   in case (e1',e2') of
-       (EInt n1, EInt n2) -> EInt $ n1 - n2
+       (EInt n1, EInt n2)     -> EInt $ n1 - n2
+       (EFloat n1, EInt n2)   -> EFloat $ n1 - fromIntegral n2
+       (EInt n1, EFloat n2)   -> EFloat $ fromIntegral n1 - n2
+       (EFloat n1, EFloat n2) -> EFloat $ n1 - n2
+       (ENaN, _)              -> ENaN
+       (_, ENaN)              -> ENaN
        _                  -> error ("Type Error: \"" ++ show (ESub e1' e2') ++
                              "\" does not typecheck.")
 simplify (EMul e1 e2) = let e1' = simplify e1
                             e2' = simplify e2
   in case (e1',e2') of
        (EInt n1, EInt n2) -> EInt $ n1 * n2
+       (EFloat n1, EInt n2)   -> EFloat $ n1 * fromIntegral n2
+       (EInt n1, EFloat n2)   -> EFloat $ fromIntegral n1 * n2
+       (EFloat n1, EFloat n2) -> EFloat $ n1 * n2
+       (ENaN, _)              -> ENaN
+       (_, ENaN)              -> ENaN
        _                  -> error ("Type Error: \"" ++ show (EMul e1' e2') ++
                              "\" does not typecheck.")
 simplify (EDiv e1 e2) = let e1' = simplify e1
                             e2' = simplify e2
   in case (e1',e2') of
-       (EInt n1, EInt n2) -> if n2 /= 0
+       (EInt n1, EInt n2) -> if n2 /= 0 
                              then EInt $ n1 `div` n2
-                             else error "Divide by Zero: Cannot divide by zero"
+                             else if n1 == 0
+                                  then ENaN
+                                  else error "Divide By Zero: Cannot divide by Zero"
+       (EFloat n1, EInt n2)   -> EFloat $ n1 / fromIntegral n2
+       (EInt n1, EFloat n2)   -> EFloat $ fromIntegral n1 / n2
+       (EFloat n1, EFloat n2) -> EFloat $ n1 / n2
+       (ENaN, _)              -> ENaN
+       (_, ENaN)              -> ENaN
        _                  -> error ("Type Error: \"" ++ show (EDiv e1' e2') ++
                              "\" does not typecheck.")
 simplify (ELeq e1 e2) = let e1' = simplify e1
                             e2' = simplify e2
   in case (e1',e2') of
        (EInt n1, EInt n2) -> EBool $ n1 <= n2
+       (EFloat n1, EInt n2)   -> EBool $ n1 <= fromIntegral n2
+       (EInt n1, EFloat n2)   -> EBool $ fromIntegral n1 <= n2
+       (EFloat n1, EFloat n2) -> EBool $ n1 <= n2
+       (ENaN, _)              -> EBool False
+       (_, ENaN)              -> EBool False
        _                  -> error ("Type Error: \"" ++ show (ELeq e1' e2') ++
                              "\" does not typecheck.")
 simplify (EIf e1 e2 e3) = if b1 then simplify e2 else simplify e3
