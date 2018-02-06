@@ -39,7 +39,7 @@ main = do
       contents <- hGetContents handle
       tokenStream <- lexString contents
       ast <- parseTokenStream tokenStream
-      print $ eval ast
+      putStrLn $ evaluate ast
       hClose handle
     where tryOpen filePath = case filePath of
             [] -> error ("Could not open file: File does not exist: " ++ filePath)
