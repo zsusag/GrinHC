@@ -11,4 +11,6 @@ data Token
   | TokenBool Bool
   | TokenLEQ
   | TokenIf
+  | TokenFloat Float
+  | TokenNaN
   deriving (Show)
