@@ -18,11 +18,16 @@ lexStringH ('<':'=':xs) ts = lexStringH xs (TokenLEQ:ts)
 lexStringH ('i':'f':xs) ts = lexStringH xs (TokenIf:ts)
 lexStringH ('t':'r':'u':'e':xs) ts = lexStringH xs (TokenBool True:ts)
 lexStringH ('f':'a':'l':'s':'e':xs) ts = lexStringH xs (TokenBool False:ts)
+lexStringH ('N':'a':'N':xs) ts = lexStringH xs (TokenNaN:ts)
 lexStringH (x:xs) ts
   | isDigit x =
-    let tokenInt = reverse $ lexInt xs [x] in
-      lexStringH (drop (length tokenInt - 1) xs)
-      (TokenInt (read tokenInt):ts)
+    let tokenInt = reverse $ lexInt xs [x]
+        xs'      = drop (length tokenInt - 1) xs
+    in if head xs' == '.'
+       then let decimal = reverse $ lexInt (drop 1 xs') []
+                xs''    = drop (length decimal + 1) xs'
+            in lexStringH xs'' (TokenFloat (read (tokenInt ++ "." ++ decimal)):ts)
+       else lexStringH xs' (TokenInt (read tokenInt):ts)
   | isSpace x = lexStringH xs ts
   | otherwise =  error ("Invalid character: " ++ [x])
 lexStringH [] ts = ts
