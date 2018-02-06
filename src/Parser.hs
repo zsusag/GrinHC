@@ -29,6 +29,8 @@ parseTokenStreamH (TokenLParen:ts) = let (e1,ts') = parseTokenStreamH $ tail ts
                                 t         -> error ("Operator not supported: " ++ show t)
        _                   -> error "Parentheses mismatch."
 parseTokenStreamH (TokenInt x:ts) = (EInt x, ts)
+parseTokenStreamH (TokenFloat f:ts) = (EFloat f, ts)
 parseTokenStreamH (TokenBool True:ts) = (EBool True, ts)
 parseTokenStreamH (TokenBool False:ts) = (EBool False, ts)
+parseTokenStreamH (TokenNaN:ts) = (ENaN, ts)
 parseTokenStreamH ts = error ("Improper syntax: " ++ show ts)
