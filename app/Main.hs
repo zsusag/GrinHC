@@ -42,9 +42,9 @@ main = do
       putStrLn $ evaluate ast
       hClose handle
     where tryOpen filePath = case filePath of
-            [] -> error ("Could not open file: File does not exist: " ++ filePath)
+            [] -> errorWithoutStackTrace ("Could not open file: File does not exist: " ++ filePath)
             _  -> do
               exists <- doesFileExist filePath
               if exists
                 then openFile filePath ReadMode
-                else error ("Could not open file: File does not exist: " ++ filePath)
+                else errorWithoutStackTrace ("Could not open file: File does not exist: " ++ filePath)

@@ -38,8 +38,8 @@ simplify (EAdd e1 e2) = let e1' = simplify e1
        (EFloat n1, EFloat n2) -> EFloat $ n1 + n2
        (ENaN, _)              -> ENaN
        (_, ENaN)              -> ENaN
-       _                      -> error ("Type Error: \"" ++ show (EAdd e1' e2') ++
-                                        "\" does not typecheck.")
+       _                      -> errorWithoutStackTrace ("Type Error: \"" ++ show (EAdd e1' e2') ++
+                                                         "\" does not typecheck.")
 simplify (ESub e1 e2) = let e1' = simplify e1
                             e2' = simplify e2
   in case (e1',e2') of
@@ -49,8 +49,8 @@ simplify (ESub e1 e2) = let e1' = simplify e1
        (EFloat n1, EFloat n2) -> EFloat $ n1 - n2
        (ENaN, _)              -> ENaN
        (_, ENaN)              -> ENaN
-       _                  -> error ("Type Error: \"" ++ show (ESub e1' e2') ++
-                             "\" does not typecheck.")
+       _                  -> errorWithoutStackTrace ("Type Error: \"" ++ show (ESub e1' e2') ++
+                                                     "\" does not typecheck.")
 simplify (EMul e1 e2) = let e1' = simplify e1
                             e2' = simplify e2
   in case (e1',e2') of
@@ -60,21 +60,21 @@ simplify (EMul e1 e2) = let e1' = simplify e1
        (EFloat n1, EFloat n2) -> EFloat $ n1 * n2
        (ENaN, _)              -> ENaN
        (_, ENaN)              -> ENaN
-       _                  -> error ("Type Error: \"" ++ show (EMul e1' e2') ++
-                             "\" does not typecheck.")
+       _                  -> errorWithoutStackTrace ("Type Error: \"" ++ show (EMul e1' e2') ++
+                                                     "\" does not typecheck.")
 simplify (EDiv e1 e2) = let e1' = simplify e1
                             e2' = simplify e2
   in case (e1',e2') of
        (EInt n1, EInt n2) | n2 /= 0 -> EInt $ n1 `div` n2
                           | n1 == 0 -> ENaN
-                          | otherwise -> error "Divide By Zero: Cannot divide by Zero"
+                          | otherwise -> errorWithoutStackTrace "Divide By Zero: Cannot divide by Zero"
        (EFloat n1, EInt n2)   -> EFloat $ n1 / fromIntegral n2
        (EInt n1, EFloat n2)   -> EFloat $ fromIntegral n1 / n2
        (EFloat n1, EFloat n2) -> EFloat $ n1 / n2
        (ENaN, _)              -> ENaN
        (_, ENaN)              -> ENaN
-       _                  -> error ("Type Error: \"" ++ show (EDiv e1' e2') ++
-                             "\" does not typecheck.")
+       _                  -> errorWithoutStackTrace ("Type Error: \"" ++ show (EDiv e1' e2') ++
+                                                     "\" does not typecheck.")
 simplify (ELeq e1 e2) = let e1' = simplify e1
                             e2' = simplify e2
   in case (e1',e2') of
@@ -84,12 +84,12 @@ simplify (ELeq e1 e2) = let e1' = simplify e1
        (EFloat n1, EFloat n2) -> EBool $ n1 <= n2
        (ENaN, _)              -> EBool False
        (_, ENaN)              -> EBool False
-       _                  -> error ("Type Error: \"" ++ show (ELeq e1' e2') ++
-                             "\" does not typecheck.")
+       _                  -> errorWithoutStackTrace ("Type Error: \"" ++ show (ELeq e1' e2') ++
+                                                     "\" does not typecheck.")
 simplify (EIf e1 e2 e3) = if b1 then simplify e2 else simplify e3
   where b1 = let e1' = simplify e1
              in case e1' of
                   (EBool b) -> b
-                  _         -> error ("Type Error: " ++ show e1' ++
-                                      " is not a boolean value within an \"if\" statement")
+                  _         -> errorWithoutStackTrace ("Type Error: " ++ show e1' ++
+                                                       " is not a boolean value within an \"if\" statement")
 simplify e = e

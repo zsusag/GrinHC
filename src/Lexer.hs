@@ -29,7 +29,7 @@ lexStringH (x:xs) ts
             in lexStringH xs'' (TokenFloat (read (tokenInt ++ "." ++ decimal)):ts)
        else lexStringH xs' (TokenInt (read tokenInt):ts)
   | isSpace x = lexStringH xs ts
-  | otherwise =  error ("Invalid character: " ++ [x])
+  | otherwise =  errorWithoutStackTrace ("Invalid character: " ++ [x])
 lexStringH [] ts = ts
 
 lexInt :: String -> String -> String
