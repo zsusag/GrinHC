@@ -85,4 +85,3 @@ $ stack test
 * N/A
 #### Known Bugs
 * None
-
