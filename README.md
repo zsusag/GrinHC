@@ -1,5 +1,5 @@
 # GrinHC --- Zachary J. Susag
-A compiler written in [Haskell](https://www.haskell.org) for the CSC-312 course at Grinnell College during the Spring 2018 semester. Currently, it doesn't compile anything but will eventually compile LISP style code.
+A compiler written in [Haskell](https://www.haskell.org) for the CSC-312 course at Grinnell College during the Spring 2018 semester.
 
 ## Supported Grammar
 Currently, GrinHC supports only the following grammar:
@@ -61,7 +61,7 @@ $ stack test
 ```
 
 ## Changelog
-### [assignment-01] --- 2018-02-06
+### [assignment-02] --- 2018-02-06
 #### New Features
 * Add ability lex and parse basic S-Expressions in a LISP style syntax
 * Ability to read in file with code return evaluated code
