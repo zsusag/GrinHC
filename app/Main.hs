@@ -7,7 +7,7 @@ import System.Directory
 
 import Lexer
 import Parser
-import AST
+import Eval
 
 newtype Args = Args
   { file      :: FilePath }
@@ -37,8 +37,10 @@ main = do
     Args filePath -> do
       handle <- tryOpen filePath
       contents <- hGetContents handle
-      tokenStream <- lexString contents
-      ast <- parseTokenStream tokenStream
+      let tokenStream = alexScanTokens contents
+--      print tokenStream
+      let ast = parse tokenStream
+--      print ast
       putStrLn $ evaluate ast
       hClose handle
     where tryOpen filePath = case filePath of
