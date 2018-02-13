@@ -34,12 +34,12 @@ data Exp t = PosExp t (Exp_ t)
 instance Show (Exp t) where
   show (PosExp _ e) = show e
 
-data Exp_ t = EInt Int
-  | EOp Op (Exp t) (Exp t)
-  | EBool Bool
-  | ELeq (Exp t) (Exp t)
-  | EIf (Exp t) (Exp t) (Exp t)
-  | EFloat Float
+data Exp_ t = EInt !Int
+  | EOp !Op !(Exp t) !(Exp t)
+  | EBool !Bool
+  | ELeq !(Exp t) !(Exp t)
+  | EIf !(Exp t) (Exp t) (Exp t)
+  | EFloat !Float
   | ENaN
   deriving (Generic)
 
