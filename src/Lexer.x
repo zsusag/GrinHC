@@ -37,15 +37,15 @@ tok f p s = f p s
 data Token
   = TokenLParen AlexPosn
   | TokenRParen AlexPosn
-  | TokenInt AlexPosn Int
+  | TokenInt AlexPosn !Int
   | TokenPlus AlexPosn
   | TokenSub AlexPosn
   | TokenMult AlexPosn
   | TokenDiv AlexPosn
-  | TokenBool AlexPosn Bool
+  | TokenBool AlexPosn !Bool
   | TokenLEQ AlexPosn
   | TokenIf AlexPosn
-  | TokenFloat AlexPosn Float
+  | TokenFloat AlexPosn !Float
   | TokenNaN AlexPosn
 
 instance Show Token where
