@@ -46,6 +46,11 @@ To build the project thereafter:
 ```
 $ stack build
 ```
+You may need to run
+```
+$ stack init
+```
+if prompted to do so by stack. This will initialize the project according to your machine.
 
 ### Running GrinHC
 To run GrinHC command line arguments:
