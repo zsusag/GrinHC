@@ -27,6 +27,8 @@ tokens :-
   true    { tok (\p s -> TokenBool p True) }
   false   { tok (\p s -> TokenBool p False) }
   if      { tok (\p s -> TokenIf p) }
+  then    { tok (\p s -> TokenThen p) }
+  else    { tok (\p s -> TokenElse p) }
   NaN     { tok (\p s -> TokenNaN p) }
   $digit+ { tok (\p s -> TokenInt p (read s)) }
   $digit+\.$digit+  { (\p s -> TokenFloat p (read s)) }
@@ -45,6 +47,8 @@ data Token
   | TokenBool AlexPosn !Bool
   | TokenLEQ AlexPosn
   | TokenIf AlexPosn
+  | TokenThen AlexPosn
+  | TokenElse AlexPosn
   | TokenFloat AlexPosn !Float
   | TokenNaN AlexPosn
 
@@ -60,22 +64,10 @@ instance Show Token where
   show (TokenBool _ False) = "false"
   show (TokenLEQ _)    = "<="
   show (TokenIf _)     = "if"
+  show (TokenThen _)   = "then"
+  show (TokenElse _)   = "else"
   show (TokenFloat _ f) = show f
   show (TokenNaN _)    = "NaN"
-
-tokenPosn :: Token -> AlexPosn
-tokenPosn (TokenLParen p)  = p
-tokenPosn (TokenRParen p)  = p
-tokenPosn (TokenInt p _)   = p
-tokenPosn (TokenPlus p)    = p
-tokenPosn (TokenSub p)     = p
-tokenPosn (TokenMult p)    = p
-tokenPosn (TokenDiv p)     = p
-tokenPosn (TokenBool p _)  = p
-tokenPosn (TokenLEQ p)     = p
-tokenPosn (TokenIf p)      = p
-tokenPosn (TokenFloat p _) = p
-tokenPosn (TokenNaN p)     = p
 
 tokenPosition :: Token -> Pos
 tokenPosition (TokenLParen (AlexPn _ line col))   = (line,col)
@@ -88,6 +80,8 @@ tokenPosition (TokenDiv (AlexPn _ line col))      = (line,col)
 tokenPosition (TokenBool (AlexPn _ line col) _ )  = (line,col)
 tokenPosition (TokenLEQ (AlexPn _ line col))      = (line,col)
 tokenPosition (TokenIf (AlexPn _ line col))       = (line,col)
+tokenPosition (TokenThen (AlexPn _ line col))     = (line,col)
+tokenPosition (TokenElse (AlexPn _ line col))     = (line,col)
 tokenPosition (TokenFloat (AlexPn _ line col) _ ) = (line,col)
 tokenPosition (TokenNaN (AlexPn _ line col))      = (line,col)
 }
