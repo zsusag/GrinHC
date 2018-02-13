@@ -47,21 +47,23 @@ main = do
    (Args file printTS printAST) <- execParser parseArgInfo
    handle <- tryOpen file
    contents <- hGetContents handle
-   let tokenStream = alexScanTokens contents
-   printAndExit printTS tokenStream handle
-   let ast = Parser.parse tokenStream
-   printAndExit printAST ast handle
-   putStrLn $ evaluate ast
-   hClose handle
-     where
-       tryOpen filePath = case filePath of
-         [] -> errorWithoutStackTrace ("Could not open file: File does not exist: " ++ filePath)
-         _  -> do
-           exists <- doesFileExist filePath
-           if exists
-             then openFile filePath ReadMode
-             else errorWithoutStackTrace ("Could not open file: File does not exist: " ++ filePath)
-       printAndExit b ts handle = when b (do print ts
-                                             hClose handle
-                                             exitSuccess)
-    
+   if null contents then
+     errorWithoutStackTrace "Error: File is empty"
+     else do 
+     let tokenStream = alexScanTokens contents
+     printAndExit printTS tokenStream handle
+     let ast = Parser.parse tokenStream
+     printAndExit printAST ast handle
+     putStrLn $ evaluate ast
+     hClose handle
+       where
+         tryOpen filePath = case filePath of
+           [] -> errorWithoutStackTrace ("Could not open file: File does not exist: " ++ filePath)
+           _  -> do
+             exists <- doesFileExist filePath
+             if exists
+               then openFile filePath ReadMode
+               else errorWithoutStackTrace ("Could not open file: File does not exist: " ++ filePath)
+         printAndExit b ts handle = when b (do print ts
+                                               hClose handle
+                                               exitSuccess)
