@@ -47,7 +47,21 @@ data Token
   | TokenIf AlexPosn
   | TokenFloat AlexPosn Float
   | TokenNaN AlexPosn
-  deriving (Show)
+
+instance Show Token where
+  show (TokenLParen _) = "("
+  show (TokenRParen _) = ")"
+  show (TokenInt _ n)  = show n
+  show (TokenPlus _)   = "+"
+  show (TokenSub _)    = "-"
+  show (TokenMult _)   = "*"
+  show (TokenDiv _)    = "/"
+  show (TokenBool _ True) = "true"
+  show (TokenBool _ False) = "false"
+  show (TokenLEQ _)    = "<="
+  show (TokenIf _)     = "if"
+  show (TokenFloat _ f) = show f
+  show (TokenNaN _)    = "NaN"
 
 tokenPosn :: Token -> AlexPosn
 tokenPosn (TokenLParen p)  = p
