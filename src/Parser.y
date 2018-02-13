@@ -26,29 +26,27 @@ import Lang
 
 %%
 
-exp :: { Exp }
+exp :: { Exp Pos}
 exp : int                 { extractTokenContents $1 }
     | float               { extractTokenContents $1 }
     | bool                { extractTokenContents $1 }
-    | NaN                 { ENaN (tokenPosition $1)}
-    | '(' '+' exp exp ')' { EAdd $3 $4 (tokenPosition $1) }
-    | '(' '-' exp exp ')' { ESub $3 $4 (tokenPosition $1) }
-    | '(' '*' exp exp ')' { EMul $3 $4 (tokenPosition $1) }
-    | '(' '/' exp exp ')' { EDiv $3 $4 (tokenPosition $1) }
-    | '(' '<=' exp exp ')' { ELeq $3 $4 (tokenPosition $1) }
-    | '(' if exp exp exp ')' { EIf $3 $4 $5 (tokenPosition $1)}
+    | NaN                 { PosExp (tokenPosition $1) ENaN}
+    | '(' '+' exp exp ')' { PosExp (tokenPosition $1) (EOp Plus $3 $4) }
+    | '(' '-' exp exp ')' { PosExp (tokenPosition $1) (EOp Minus $3 $4) }
+    | '(' '*' exp exp ')' { PosExp (tokenPosition $1) (EOp Mult $3 $4) }
+    | '(' '/' exp exp ')' { PosExp (tokenPosition $1) (EOp Div $3 $4) }
+    | '(' '<=' exp exp ')' { PosExp (tokenPosition $1) (ELeq $3 $4) }
+    | '(' if exp exp exp ')' { PosExp (tokenPosition $1) (EIf $3 $4 $5) }
 {
-extractTokenContents :: Token -> Exp
-extractTokenContents (TokenInt (AlexPn _ line col) n)   = EInt n (line,col)
-extractTokenContents (TokenFloat (AlexPn _ line col) f) = EFloat f (line,col)
-extractTokenContents (TokenBool (AlexPn _ line col) b)  = EBool b (line,col)
+extractTokenContents :: Token -> Exp Pos
+extractTokenContents (TokenInt (AlexPn _ line col) n)   = PosExp (line,col) (EInt n)
+extractTokenContents (TokenFloat (AlexPn _ line col) f) = PosExp (line,col) (EFloat f)
+extractTokenContents (TokenBool (AlexPn _ line col) b)  = PosExp (line,col) (EBool b)
 extractTokenContents _ = error "This should never happen. Weird..."
 
 
 parseError :: [Token] -> a
-parseError (t:ts) = let (line,col) = tokenPosition t
-                    in error ("Parse Error at line " ++ show line ++ ", column "
-                              ++ show col)
+parseError (t:ts) = errorWithoutStackTrace ("Parse Error at " ++ show (tokenPosition t))
 parseError [] = errorWithoutStackTrace "Parse Error: Reached EOF without closing expression"
 }
 
