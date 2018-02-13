@@ -19,24 +19,35 @@ import Lang
      '/'        { TokenDiv _}
      '<='       { TokenLEQ _}
      if         { TokenIf _}
+     then       { TokenThen _}
+     else       { TokenElse _}
      NaN        { TokenNaN _}
      int        { TokenInt _ _}
      bool       { TokenBool _ _}
      float      { TokenFloat _ _}
 
+%nonassoc '<='
+%left '+' '-'
+%left '*' '/'
+
 %%
 
-exp :: { Exp Pos}
-exp : int                 { extractTokenContents $1 }
-    | float               { extractTokenContents $1 }
-    | bool                { extractTokenContents $1 }
-    | NaN                 { PosExp (tokenPosition $1) ENaN}
-    | '(' '+' exp exp ')' { PosExp (tokenPosition $1) (EOp Plus $3 $4) }
-    | '(' '-' exp exp ')' { PosExp (tokenPosition $1) (EOp Minus $3 $4) }
-    | '(' '*' exp exp ')' { PosExp (tokenPosition $1) (EOp Mult $3 $4) }
-    | '(' '/' exp exp ')' { PosExp (tokenPosition $1) (EOp Div $3 $4) }
-    | '(' '<=' exp exp ')' { PosExp (tokenPosition $1) (ELeq $3 $4) }
-    | '(' if exp exp exp ')' { PosExp (tokenPosition $1) (EIf $3 $4 $5) }
+exp :: { Exp Pos }
+exp : if exp then exp else exp  { PosExp (tokenPosition $1) (EIf $2 $4 $6) }
+    | exp1                      { $1 }
+
+exp1 :: { Exp Pos}
+exp1 : int                      { extractTokenContents $1 }
+     | float                    { extractTokenContents $1 }
+     | bool                     { extractTokenContents $1 }
+     | NaN                      { PosExp (tokenPosition $1) ENaN}
+     | '(' exp ')'              { $2 }
+     | exp1 '+' exp1            { PosExp (tokenPosition $2) (EOp Plus $1 $3) }
+     | exp1 '-' exp1            { PosExp (tokenPosition $2) (EOp Minus $1 $3) }
+     | exp1 '*' exp1            { PosExp (tokenPosition $2) (EOp Mult $1 $3) }
+     | exp1 '/' exp1            { PosExp (tokenPosition $2) (EOp Div $1 $3) }
+     | exp1 '<=' exp1           { PosExp (tokenPosition $2) (ELeq $1 $3) }
+
 {
 extractTokenContents :: Token -> Exp Pos
 extractTokenContents (TokenInt (AlexPn _ line col) n)   = PosExp (line,col) (EInt n)
