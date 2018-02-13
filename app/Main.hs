@@ -63,5 +63,5 @@ main = do
              else errorWithoutStackTrace ("Could not open file: File does not exist: " ++ filePath)
        printAndExit b ts handle = when b (do print ts
                                              hClose handle
-                                             exitWith (ExitSuccess))
+                                             exitSuccess)
     
