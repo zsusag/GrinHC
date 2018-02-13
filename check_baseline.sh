@@ -36,9 +36,9 @@ then
         echo -n "."
 
         # Evaluate and diff the output
-        eval $COMMAND$OPTIONS$file > $tmpfile_eval
-        eval $COMMAND$OPTIONS$LEX_COMMAND$file > $tmpfile_lex
-        eval $COMMAND$OPTIONS$PARSE_COMMAND$file > $tmpfile_parse
+        eval $COMMAND$OPTIONS$file > $tmpfile_eval 2>&1
+        eval $COMMAND$OPTIONS$LEX_COMMAND$file > $tmpfile_lex 2>&1
+        eval $COMMAND$OPTIONS$PARSE_COMMAND$file > $tmpfile_parse 2>&1
 
         # Generate diffs
         diff_output_eval="$(diff $tmpfile_eval $eval_outfile)"

@@ -34,12 +34,12 @@ then
 
         # Generate outfiles
         echo -n "."
-        eval $COMMAND$OPTIONS$file > $eval_outfile
+        eval $COMMAND$OPTIONS$file > $eval_outfile 2>&1
         echo -n "."
-        eval $COMMAND$OPTIONS$LEX_COMMAND$file > $lex_outfile
+        eval $COMMAND$OPTIONS$LEX_COMMAND$file > $lex_outfile 2>&1
         echo -n "."
-        eval $COMMAND$OPTIONS$PARSE_COMMAND$file > $parse_outfile
+        eval $COMMAND$OPTIONS$PARSE_COMMAND$file > $parse_outfile 2>&1
         
-        echo "   Done"
+        echo "Done"
     done
 fi
