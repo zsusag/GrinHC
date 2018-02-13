@@ -68,12 +68,12 @@ $ stack test
 #### Changes to Existing Features
 * [Alex](https://www.haskell.org/alex/) and [Happy](https://www.haskell.org/happy/) are used instead of a hand-rolled lexer and parser
 * Grammar changed from prefix to infix
-** `<=` is non-associative and thus binds the loosest.
-** `+` and `-` are left-associative and binds tighter than `<=`
-** `*` and `/` are left-associative and binds the tightest of all operations currently in the grammar
+    * `<=` is non-associative and thus binds the loosest.
+    * `+` and `-` are left-associative and binds tighter than `<=`
+    * `*` and `/` are left-associative and binds the tightest of all operations currently in the grammar
 * Test suite upgraded
-** Tests updated to test infix grammar
-** `stack test` will now test lexing and parsing components of GrinHC as well as evaluation
+    * Tests updated to test infix grammar
+    * `stack test` will now test lexing and parsing components of GrinHC as well as evaluation
 #### Known Bugs
 * None
 ### [assignment-02] --- 2018-02-06
