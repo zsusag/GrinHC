@@ -45,10 +45,10 @@ data Exp_ t = EInt !Int
 
 instance Show (Exp_ t) where
   show (EInt n) = show n
-  show (EOp op e1 e2) = "(" ++ show op ++ " " ++ show e1 ++ " " ++ show e2 ++ ")"
+  show (EOp op e1 e2) = show e1 ++ " " ++  show op ++ " " ++ show e2
   show (EBool True) = "true"
   show (EBool False) = "false"
-  show (ELeq e1 e2) = "(<= " ++ show e1 ++ " " ++ show e2 ++ ")"
-  show (EIf e1 e2 e3) = "(if " ++ show e1 ++ " " ++ show e2 ++ " " ++ show e3 ++ ")"
+  show (ELeq e1 e2) = show e1 ++ " <= " ++ show e2
+  show (EIf e1 e2 e3) = "if " ++ show e1 ++ " then  " ++ show e2 ++ " else " ++ show e3
   show (EFloat f) = show f
   show ENaN = "NaN"
