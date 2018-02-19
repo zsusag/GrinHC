@@ -1,6 +1,6 @@
 module Error where
 
-import Lang (Pos)
+import Lang (Pos(..))
 
 posError :: Pos -> String -> String -> a
 posError (line,col) errortype msg = errorWithoutStackTrace posMsg
