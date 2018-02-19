@@ -27,7 +27,7 @@ source-repository head
 
 library
   exposed-modules:
-      Lexer, Parser, Lang, Eval
+      Lexer, Parser, Lang, Eval, Error
   build-tools:
       alex, happy
   hs-source-dirs:

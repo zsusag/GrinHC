@@ -4,6 +4,7 @@ module Parser where
 
 import Lexer
 import Lang
+import Error
 }
 
 %name parse
@@ -57,7 +58,7 @@ extractTokenContents _ = error "This should never happen. Weird..."
 
 
 parseError :: [Token] -> a
-parseError (t:ts) = errorWithoutStackTrace ("Parse Error at " ++ show (tokenPosition t))
+parseError (t:ts) = posError (tokenPosition t) "Parse Error" ""
 parseError [] = errorWithoutStackTrace "Parse Error: Reached EOF without closing expression"
 }
 

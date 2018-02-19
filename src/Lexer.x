@@ -13,25 +13,32 @@ import Lang
 %wrapper "posn"
 
 $digit = 0-9
+$upper = [A-Z]
+$lower = [a-z \_]
+
+$idchar  = [$lower $upper $digit \']
+
+@varid = $lower $idchar*
 
 tokens :-
 
-  $white+ ;
-  \(      { tok (\p s -> TokenLParen p) }
-  \)      { tok (\p s -> TokenRParen p) }
-  \+      { tok (\p s -> TokenPlus p) }
-  \-      { tok (\p s -> TokenSub p) }
-  \*      { tok (\p s -> TokenMult p) }  
-  \/      { tok (\p s -> TokenDiv p) }
-  "<="    { tok (\p s -> TokenLEQ p) }
-  true    { tok (\p s -> TokenBool p True) }
-  false   { tok (\p s -> TokenBool p False) }
-  if      { tok (\p s -> TokenIf p) }
-  then    { tok (\p s -> TokenThen p) }
-  else    { tok (\p s -> TokenElse p) }
-  NaN     { tok (\p s -> TokenNaN p) }
-  $digit+ { tok (\p s -> TokenInt p (read s)) }
+  $white+           ;
+  \(                { tok (\p s -> TokenLParen p) }
+  \)                { tok (\p s -> TokenRParen p) }
+  \+                { tok (\p s -> TokenPlus p) }
+  \-                { tok (\p s -> TokenSub p) }
+  \*                { tok (\p s -> TokenMult p) }  
+  \/                { tok (\p s -> TokenDiv p) }
+  "<="              { tok (\p s -> TokenLEQ p) }
+  true              { tok (\p s -> TokenBool p True) }
+  false             { tok (\p s -> TokenBool p False) }
+  if                { tok (\p s -> TokenIf p) }
+  then              { tok (\p s -> TokenThen p) }
+  else              { tok (\p s -> TokenElse p) }
+  NaN               { tok (\p s -> TokenNaN p) }
+  $digit+           { tok (\p s -> TokenInt p (read s)) }
   $digit+\.$digit+  { (\p s -> TokenFloat p (read s)) }
+  @varid            { tok (\p s -> TokenLid p s) }
 {
 -- Some action helpers:
 tok f p s = f p s
@@ -51,6 +58,7 @@ data Token
   | TokenElse AlexPosn
   | TokenFloat AlexPosn !Float
   | TokenNaN AlexPosn
+  | TokenLid AlexPosn String
 
 instance Show Token where
   show (TokenLParen _) = "("
@@ -68,6 +76,7 @@ instance Show Token where
   show (TokenElse _)   = "else"
   show (TokenFloat _ f) = show f
   show (TokenNaN _)    = "NaN"
+  show (TokenLid _ s)  = "LID: " ++ s
 
 tokenPosition :: Token -> Pos
 tokenPosition (TokenLParen (AlexPn _ line col))   = (line,col)
@@ -84,4 +93,5 @@ tokenPosition (TokenThen (AlexPn _ line col))     = (line,col)
 tokenPosition (TokenElse (AlexPn _ line col))     = (line,col)
 tokenPosition (TokenFloat (AlexPn _ line col) _ ) = (line,col)
 tokenPosition (TokenNaN (AlexPn _ line col))      = (line,col)
+tokenPosition (TokenLid (AlexPn _ line col) _)    = (line,col)
 }
