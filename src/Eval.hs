@@ -6,65 +6,49 @@ import Lang
 import Error
 
 evaluate :: Exp Pos -> String
-evaluate e = show simp
-  where simp = simplify e
+evaluate = show . simplify
 
-simplify :: Exp Pos -> Exp Pos
-simplify (PosExp _ (EIf e1 e2 e3)) = if b then simplify e2 else simplify e3
+simplify :: Exp Pos -> Value
+simplify (PosExp _ (EInt n)) = VInt n
+simplify (PosExp _ (EBool b)) = VBool b
+simplify (PosExp _ (EFloat f)) = VFloat f
+simplify (PosExp _ ENaN) = VNaN
+simplify (PosExp p (EOp op e1 e2)) = 
+  case (simplify e1, simplify e2) of
+    (VInt n1, VInt n2) -> intOp p op n1 n2
+    (VInt n, VFloat f) -> floatOp p op (fromIntegral n) f
+    (VFloat f, VInt n) -> floatOp p op f (fromIntegral n)
+    (VFloat f1, VFloat f2) -> floatOp p op f1 f2
+    (VNaN, _) -> VNaN
+    (_, VNaN) -> VNaN
+    _ -> posError p "Evaluation Error" ": cannot perform arithmetic operation on non-number values"
+simplify (PosExp p (EIf e1 e2 e3)) = if b then simplify e2 else simplify e3
   where b = case simplify e1 of
-              (PosExp _ (EBool b')) -> b'
-              (PosExp p _)  ->
-                posError p "Evaluation Error" ": expected a boolean value in guard of conditional"
-simplify (PosExp _ (ELeq e1 e2)) =
-  case (simplify e1, simplify e2) of
-    (PosExp p (EInt n1), PosExp _ (EInt n2)) -> PosExp p $ EBool $ n1 <= n2
-    (PosExp p (EFloat f), PosExp _ (EInt n)) -> PosExp p $ EBool $ f <= fromIntegral n
-    (PosExp p (EInt n), PosExp _ (EFloat f)) -> PosExp p $ EBool $ fromIntegral n <= f
-    (PosExp p (EFloat f1), PosExp _ (EFloat f2)) -> PosExp p $ EBool $ f1 <= f2
-    (PosExp p ENaN, _) -> PosExp p $ EBool False
-    (_, PosExp p ENaN) -> PosExp p $ EBool False
-    (PosExp _ (EInt _), PosExp p _) ->
-      posError p "Evaluation Error" ": cannot compare non-number values"
-    (PosExp _ (EFloat _), PosExp p _) ->
-      posError p "Evaluation Error" ": cannot compare non-number values"
-    (PosExp p _, PosExp _ (EInt _)) ->
-      posError p "Evaluation Error" ": cannot compare non-number values"
-    (PosExp p _, PosExp _ (EFloat _)) ->
-      posError p "Evaluation Error" ": cannot compare non-number values"
-    (PosExp p _, PosExp _ _) ->
-      posError p "Evaluation Error" ": cannot compare non-number values"
-simplify (PosExp _ (EOp op e1 e2)) =
-  case (simplify e1, simplify e2) of
-    (PosExp _ (EInt n1), PosExp p (EInt n2)) -> case op of
-      Div | n2 /= 0 -> PosExp p $ EInt $ intOp op n1 n2
-          | n1 == 0 -> PosExp p ENaN
-          | otherwise -> posError p "Evaluation Error" ": divide by zero"
-      _ -> PosExp p $ EInt $ intOp op n1 n2
-    (PosExp _ (EFloat f), PosExp p (EInt n)) -> case op of
-      Div | n /= 0 -> PosExp p $ EFloat $ floatOp op f (fromIntegral n)
-          | f == 0 -> PosExp p ENaN
-          | otherwise -> posError p "Evaluation Error" ": divide by zero"
-      _ -> PosExp p $ EFloat $ floatOp op f (fromIntegral n)
-    (PosExp _ (EInt n), PosExp p (EFloat f)) -> case op of
-      Div | f /= 0 -> PosExp p $ EFloat $ floatOp op (fromIntegral n) f
-          | n == 0 -> PosExp p ENaN
-          | otherwise -> posError p "Evaluation Error" ": divide by zero"
-      _ -> PosExp p $ EFloat $ floatOp op (fromIntegral n) f
-    (PosExp _ (EFloat f1), PosExp p (EFloat f2)) -> case op of
-      Div | f2 /= 0 -> PosExp p $ EFloat $ floatOp op f1 f2
-          | f1 == 0 -> PosExp p ENaN
-          | otherwise -> posError p "Evaluation Error" ": divide by zero"
-      _ -> PosExp p $ EFloat $ floatOp op f1 f2
-    (PosExp p ENaN, _) -> PosExp p ENaN
-    (_, PosExp p ENaN) -> PosExp p ENaN
-    (PosExp _ (EInt _), PosExp p _) ->
-      posError p "Evaluation Error" ": cannot perform arithmetic operation on non-number values"
-    (PosExp _ (EFloat _), PosExp p _) ->
-      posError p "Evaluation Error" ": cannot perform arithmetic operation on non-number values"
-    (PosExp p _, PosExp _ (EInt _)) ->
-      posError p "Evaluation Error" ": cannot perform arithmetic operation on non-number values"
-    (PosExp p _, PosExp _ (EFloat _)) ->
-      posError p "Evaluation Error" ": cannot perform arithmetic operation on non-number values"
-    (PosExp p _, PosExp _ _) ->
-      posError p "Evaluation Error" ": cannot perform arithmetic operation on non-number values"
-simplify e = e
+              (VBool b') -> b'
+              _ -> posError p "Evaluation Error" ": expected a boolean value in guard of conditional"
+
+intOp :: Pos -> Op -> Int -> Int -> Value
+intOp _ Plus n1 n2  = VInt $ n1 + n2
+intOp _ Minus n1 n2 = VInt $ n1 - n2
+intOp _ Mult n1 n2  = VInt $ n1 * n2
+intOp _ Lte n1 n2   = VBool $ n1 <= n2
+intOp _ Geq n1 n2   = VBool $ n1 >= n2
+intOp _ Eq n1 n2    = VBool $ n1 == n2
+intOp p Div n1 n2
+  | n1 == 0 && n2 == 0 = VNaN
+  | n2 == 0 = posError p "Evaluation Erro" ": divide by zero"
+  | otherwise = VInt $ n1 `div` n2
+{-# INLINE intOp #-}
+
+floatOp :: Pos -> Op -> Float -> Float -> Value
+floatOp _ Plus f1 f2  = VFloat $ f1 + f2 
+floatOp _ Minus f1 f2 = VFloat $ f1 - f2
+floatOp _ Mult f1 f2  = VFloat $ f1 * f2
+floatOp _ Lte f1 f2   = VBool $ f1 <= f2
+floatOp _ Geq f1 f2   = VBool $ f1 >= f2
+floatOp _ Eq f1 f2    = VBool $ f1 == f2
+floatOp p Div f1 f2
+  | f1 == 0 && f2 == 0 = VNaN
+  | f2 == 0 = posError p "Evaluation Erro" ": divide by zero"
+  | otherwise = VFloat $ f1 / f2
+{-# INLINE floatOp #-}

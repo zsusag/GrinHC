@@ -18,7 +18,9 @@ import Error
      '-'        { TokenSub _}
      '*'        { TokenMult _}
      '/'        { TokenDiv _}
-     '<='       { TokenLEQ _}
+     '<='       { TokenLte _}
+     '>='       { TokenGeq _}
+     '=='       { TokenEq _}
      if         { TokenIf _}
      then       { TokenThen _}
      else       { TokenElse _}
@@ -27,7 +29,7 @@ import Error
      bool       { TokenBool _ _}
      float      { TokenFloat _ _}
 
-%nonassoc '<='
+%nonassoc '<=' '>=' '=='
 %left '+' '-'
 %left '*' '/'
 
@@ -47,7 +49,9 @@ exp1 : int                      { extractTokenContents $1 }
      | exp1 '-' exp1            { PosExp (tokenPosition $2) (EOp Minus $1 $3) }
      | exp1 '*' exp1            { PosExp (tokenPosition $2) (EOp Mult $1 $3) }
      | exp1 '/' exp1            { PosExp (tokenPosition $2) (EOp Div $1 $3) }
-     | exp1 '<=' exp1           { PosExp (tokenPosition $2) (ELeq $1 $3) }
+     | exp1 '<=' exp1           { PosExp (tokenPosition $2) (EOp Lte $1 $3) }
+     | exp1 '>=' exp1           { PosExp (tokenPosition $2) (EOp Geq $1 $3) }
+     | exp1 '==' exp1           { PosExp (tokenPosition $2) (EOp Eq $1 $3) }
 
 {
 extractTokenContents :: Token -> Exp Pos
@@ -55,7 +59,6 @@ extractTokenContents (TokenInt (AlexPn _ line col) n)   = PosExp (line,col) (EIn
 extractTokenContents (TokenFloat (AlexPn _ line col) f) = PosExp (line,col) (EFloat f)
 extractTokenContents (TokenBool (AlexPn _ line col) b)  = PosExp (line,col) (EBool b)
 extractTokenContents _ = error "This should never happen. Weird..."
-
 
 parseError :: [Token] -> a
 parseError (t:ts) = posError (tokenPosition t) "Parse Error" ""
