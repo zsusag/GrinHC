@@ -1,1 +1,1 @@
-GrinHC: Evaluation Error at (line 1, column 1): cannot perform arithmetic operation on non-number values
+GrinHC: Evaluation Error at (line 1, column 6): cannot perform arithmetic operation on non-number values
