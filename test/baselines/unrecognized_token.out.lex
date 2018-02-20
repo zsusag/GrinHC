@@ -1,1 +1,1 @@
-[LID: this,LID: shouldn't,LID: work]
+[this,shouldn't,work]

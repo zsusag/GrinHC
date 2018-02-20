@@ -29,9 +29,15 @@ tokens :-
   \-                { tok (\p s -> TokenSub p) }
   \*                { tok (\p s -> TokenMult p) }  
   \/                { tok (\p s -> TokenDiv p) }
+  \=                { tok (\p s -> TokenSet p) }
+  \$                { tok (\p s -> TokenDollar p) }
   "<="              { tok (\p s -> TokenLte p) }
   ">="              { tok (\p s -> TokenGeq p) }
   "=="              { tok (\p s -> TokenEq p) }
+  "->"              { tok (\p s -> TokenArr p) }
+  let               { tok (\p s -> TokenLet p) }
+  in                { tok (\p s -> TokenIn p) }
+  lambda            { tok (\p s -> TokenLambda p) }               
   true              { tok (\p s -> TokenBool p True) }
   false             { tok (\p s -> TokenBool p False) }
   if                { tok (\p s -> TokenIf p) }
@@ -53,6 +59,8 @@ data Token
   | TokenSub AlexPosn
   | TokenMult AlexPosn
   | TokenDiv AlexPosn
+  | TokenSet AlexPosn
+  | TokenDollar AlexPosn
   | TokenBool AlexPosn !Bool
   | TokenLte AlexPosn
   | TokenGeq AlexPosn
@@ -62,7 +70,11 @@ data Token
   | TokenElse AlexPosn
   | TokenFloat AlexPosn !Float
   | TokenNaN AlexPosn
-  | TokenLid AlexPosn String
+  | TokenLid AlexPosn !String
+  | TokenArr AlexPosn
+  | TokenLet AlexPosn
+  | TokenIn AlexPosn
+  | TokenLambda AlexPosn
 
 instance Show Token where
   show (TokenLParen _) = "("
@@ -72,6 +84,8 @@ instance Show Token where
   show (TokenSub _)    = "-"
   show (TokenMult _)   = "*"
   show (TokenDiv _)    = "/"
+  show (TokenSet _)    = "="
+  show (TokenDollar _) = "$"
   show (TokenBool _ True) = "true"
   show (TokenBool _ False) = "false"
   show (TokenLte _)    = "<="
@@ -82,7 +96,11 @@ instance Show Token where
   show (TokenElse _)   = "else"
   show (TokenFloat _ f) = show f
   show (TokenNaN _)    = "NaN"
-  show (TokenLid _ s)  = "LID: " ++ s
+  show (TokenLid _ s)  = s
+  show (TokenArr _)    = "->"
+  show (TokenLet _)    = "let"
+  show (TokenIn _)     = "in"
+  show (TokenLambda _) = "lambda"
 
 tokenPosition :: Token -> Pos
 tokenPosition (TokenLParen (AlexPn _ line col))   = (line,col)
@@ -92,6 +110,8 @@ tokenPosition (TokenPlus (AlexPn _ line col))     = (line,col)
 tokenPosition (TokenSub (AlexPn _ line col))      = (line,col)
 tokenPosition (TokenMult (AlexPn _ line col))     = (line,col)
 tokenPosition (TokenDiv (AlexPn _ line col))      = (line,col)
+tokenPosition (TokenSet (AlexPn _ line col))      = (line,col)
+tokenPosition (TokenDollar (AlexPn _ line col))   = (line,col)
 tokenPosition (TokenBool (AlexPn _ line col) _ )  = (line,col)
 tokenPosition (TokenLte (AlexPn _ line col))      = (line,col)
 tokenPosition (TokenGeq (AlexPn _ line col))      = (line,col)
@@ -102,4 +122,8 @@ tokenPosition (TokenElse (AlexPn _ line col))     = (line,col)
 tokenPosition (TokenFloat (AlexPn _ line col) _ ) = (line,col)
 tokenPosition (TokenNaN (AlexPn _ line col))      = (line,col)
 tokenPosition (TokenLid (AlexPn _ line col) _)    = (line,col)
+tokenPosition (TokenArr (AlexPn _ line col))      = (line,col)
+tokenPosition (TokenLet (AlexPn _ line col))      = (line,col)
+tokenPosition (TokenIn (AlexPn _ line col))       = (line,col)
+tokenPosition (TokenLambda (AlexPn _ line col))   = (line,col)
 }
