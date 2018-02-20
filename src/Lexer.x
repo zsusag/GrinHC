@@ -31,6 +31,8 @@ tokens :-
   \/                { tok (\p s -> TokenDiv p) }
   \=                { tok (\p s -> TokenSet p) }
   \$                { tok (\p s -> TokenDollar p) }
+  \<                { tok (\p s -> TokenLess p) }
+  \>                { tok (\p s -> TokenGreat p) }
   "<="              { tok (\p s -> TokenLte p) }
   ">="              { tok (\p s -> TokenGeq p) }
   "=="              { tok (\p s -> TokenEq p) }
@@ -61,6 +63,8 @@ data Token
   | TokenDiv AlexPosn
   | TokenSet AlexPosn
   | TokenDollar AlexPosn
+  | TokenLess AlexPosn
+  | TokenGreat AlexPosn
   | TokenBool AlexPosn !Bool
   | TokenLte AlexPosn
   | TokenGeq AlexPosn
@@ -86,6 +90,8 @@ instance Show Token where
   show (TokenDiv _)    = "/"
   show (TokenSet _)    = "="
   show (TokenDollar _) = "$"
+  show (TokenLess _)   = "<"
+  show (TokenGreat _)  = ">"
   show (TokenBool _ True) = "true"
   show (TokenBool _ False) = "false"
   show (TokenLte _)    = "<="
@@ -112,6 +118,8 @@ tokenPosition (TokenMult (AlexPn _ line col))     = (line,col)
 tokenPosition (TokenDiv (AlexPn _ line col))      = (line,col)
 tokenPosition (TokenSet (AlexPn _ line col))      = (line,col)
 tokenPosition (TokenDollar (AlexPn _ line col))   = (line,col)
+tokenPosition (TokenLess (AlexPn _ line col))     = (line,col)
+tokenPosition (TokenGreat (AlexPn _ line col))    = (line,col)
 tokenPosition (TokenBool (AlexPn _ line col) _ )  = (line,col)
 tokenPosition (TokenLte (AlexPn _ line col))      = (line,col)
 tokenPosition (TokenGeq (AlexPn _ line col))      = (line,col)
