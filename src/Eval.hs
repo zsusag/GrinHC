@@ -12,6 +12,7 @@ evaluateToExp (PosExp p e) = case simplify (PosExp p e) of
   (VBool b) -> EBool b
   (VFloat f) -> EFloat f
   (VFun s e') -> EFun (PosExp p (ELid s)) e'
+  (VRec f s e') -> ERec (PosExp p (ELid f)) (PosExp p (ELid s)) e'
   VNaN -> ENaN
 
 simplify :: Exp Pos -> Value
@@ -22,7 +23,12 @@ simplify (PosExp p (ELid _)) = posError p "Evaluation Error" "Dangling identifie
 simplify (PosExp _ ENaN) = VNaN
 simplify (PosExp p (EFun e1 e2)) = case e1 of
   (PosExp _ (ELid s)) -> VFun s e2
-  _      -> posError p "Evaluation Error" ": variable for function is not an identifier"
+  _ -> posError p "Evaluation Error" ": variable for function is not an identifier"
+simplify (PosExp p (ERec e1 e2 e3)) = case e1 of
+  (PosExp _ (ELid f)) -> case e2 of
+    (PosExp _ (ELid s)) -> VRec f s e3
+    _ -> posError p "Evaluation Error" ": variable for function is not an identifier"
+  _ -> posError p "Evaluation Error" ": variable for function is not an identifier"
 simplify (PosExp p (EOp op e1 e2)) = 
   case (simplify e1, simplify e2) of
     (VInt n1, VInt n2) -> intOp p op n1 n2
@@ -40,9 +46,13 @@ simplify (PosExp p (ELet e1 e2 e3)) = case e1 of
   (PosExp _ (ELid s)) -> let v = evaluateToExp e2
     in simplify $ subst v (ELid s) e3
   _ -> posError p "Evaluation Error" ": variable for let-binding is not an identifier"
-simplify (PosExp p (EFunApp e1 e2)) = case evaluateToExp e1 of
+simplify (PosExp p (EFunApp e1 e2)) = let e1' = evaluateToExp e1
+  in case e1' of
   (EFun (PosExp _ (ELid l)) e) -> let v = evaluateToExp e2
     in simplify $ subst v (ELid l) e
+  (ERec (PosExp _ (ELid f)) (PosExp _ (ELid l)) e) ->
+    let v = evaluateToExp e2
+    in simplify $ subst e1' (ELid f) (subst v (ELid l) e)
   _ -> posError p "Evaluation Error" ": expression does not evaluate to function"
 
 subst :: Exp_ Pos -> Exp_ Pos -> Exp Pos -> Exp Pos

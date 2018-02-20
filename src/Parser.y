@@ -18,6 +18,7 @@ import Error
 %left '$'
 %left '->'
 
+
 %token
      '('        { TokenLParen _}
      ')'        { TokenRParen _}
@@ -55,15 +56,15 @@ exp : if exp then exp else exp  { PosExp (tokenPosition $1) (EIf $2 $4 $6) }
     | exp1                      { $1 }
 
 exp1 :: { Exp Pos}
-exp1 : exp1 '+' exp1             { PosExp (tokenPosition $2) (EOp Plus $1 $3) }
-     | exp1 '-' exp1             { PosExp (tokenPosition $2) (EOp Minus $1 $3) }
-     | exp1 '*' exp1             { PosExp (tokenPosition $2) (EOp Mult $1 $3) }
-     | exp1 '/' exp1             { PosExp (tokenPosition $2) (EOp Div $1 $3) }
-     | exp1 '<=' exp1            { PosExp (tokenPosition $2) (EOp Lte $1 $3) }
-     | exp1 '>=' exp1            { PosExp (tokenPosition $2) (EOp Geq $1 $3) }
-     | exp1 '==' exp1            { PosExp (tokenPosition $2) (EOp Eq $1 $3) }
-     | exp1 '<' exp1             { PosExp (tokenPosition $2) (EOp Lt $1 $3) }
-     | exp1 '>' exp1             { PosExp (tokenPosition $2) (EOp Gt $1 $3) }
+exp1 : exp1 '+' exp1            { PosExp (tokenPosition $2) (EOp Plus $1 $3) }
+     | exp1 '-' exp1            { PosExp (tokenPosition $2) (EOp Minus $1 $3) }
+     | exp1 '*' exp1            { PosExp (tokenPosition $2) (EOp Mult $1 $3) }
+     | exp1 '/' exp1            { PosExp (tokenPosition $2) (EOp Div $1 $3) }
+     | exp1 '<=' exp1           { PosExp (tokenPosition $2) (EOp Lte $1 $3) }
+     | exp1 '>=' exp1           { PosExp (tokenPosition $2) (EOp Geq $1 $3) }
+     | exp1 '==' exp1           { PosExp (tokenPosition $2) (EOp Eq $1 $3) }
+     | exp1 '<' exp1            { PosExp (tokenPosition $2) (EOp Lt $1 $3) }
+     | exp1 '>' exp1            { PosExp (tokenPosition $2) (EOp Gt $1 $3) }
      | '(' exp ')'              { $2 }
      | val                      { $1 }
 
@@ -77,7 +78,7 @@ val : int                       { extractTokenContents $1 }
 
 fun :: { Exp Pos }
 fun : lambda lid '->' exp       { PosExp (tokenPosition $1) (EFun (extractTokenContents $2) $4) }
---    | fix lid lid '->' exp      { PosExp (tokenPosition $1) (ERec (extractTokenContents $2) (extractTokenContents $3) $5) }
+    | fix lid lid '->' exp      { PosExp (tokenPosition $1) (ERec (extractTokenContents $2) (extractTokenContents $3) $5) }
 {
 extractTokenContents :: Token -> Exp Pos
 extractTokenContents (TokenInt (AlexPn _ line col) n)   = PosExp (line,col) (EInt n)
