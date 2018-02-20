@@ -9,6 +9,7 @@ data Value = VInt {-# UNPACK #-} !Int
   | VBool !Bool
   | VFloat {-# UNPACK #-} !Float
   | VFun !String !(Exp Pos)
+  | VRec !String !String !(Exp Pos)
   | VNaN
   deriving (Generic, Eq)
 
@@ -32,6 +33,7 @@ data Exp_ t = EInt !Int
   | EBool !Bool
   | ELid !String
   | EFun !(Exp t) !(Exp t)
+  | ERec !(Exp t) !(Exp t) !(Exp t)
   | ENaN
   | EOp !Op !(Exp t) !(Exp t)
   | EIf !(Exp t) (Exp t) (Exp t)
@@ -44,6 +46,7 @@ instance Show Value where
   show (VBool True)  = "true"
   show (VBool False) = "false"
   show (VFun s v)    = "lambda " ++ s ++ " -> " ++ show v
+  show (VRec f l v)  = "fix " ++ f ++ " " ++ l ++ " -> " ++ show v
   show (VFloat f)    = show f
   show VNaN          = "NaN"
 
@@ -68,6 +71,7 @@ instance Show (Exp_ t) where
   show (EBool False) = "false"
   show (ELet l e1 e2) = "let " ++ show l ++ " = " ++ show e1 ++ " in " ++ show e2
   show (EFun l e) = "lambda " ++ show l ++ " -> " ++ show e
+  show (ERec f l v) = "fix " ++ show f ++ " " ++ show l ++ " -> " ++ show v
   show (EFunApp e1 e2) = show e1 ++ " $ " ++ show e2
   show (EIf e1 e2 e3) = "if " ++ show e1 ++ " then  " ++ show e2 ++ " else " ++ show e3
   show (EFloat f) = show f
