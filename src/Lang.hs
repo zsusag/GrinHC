@@ -8,8 +8,9 @@ type Pos = (Int,Int)
 data Value = VInt {-# UNPACK #-} !Int
   | VBool !Bool
   | VFloat {-# UNPACK #-} !Float
+  | VFun !String !(Exp Pos)
   | VNaN
-  deriving (Generic)
+  deriving (Generic, Eq)
 
 -- Credit: Andrew Mack for helping me scraping my boilerplate
 data Op = Plus
@@ -19,22 +20,30 @@ data Op = Plus
   | Lte
   | Geq
   | Eq
-  deriving (Generic)
+  | Lt
+  | Gt
+  deriving (Generic, Eq)
 
 data Exp t = PosExp t (Exp_ t)
+  deriving (Eq)
 
 data Exp_ t = EInt !Int
-  | EOp !Op !(Exp t) !(Exp t)
-  | EBool !Bool
-  | EIf !(Exp t) (Exp t) (Exp t)
   | EFloat !Float
+  | EBool !Bool
+  | ELid !String
+  | EFun !(Exp t) !(Exp t)
   | ENaN
-  deriving (Generic)
+  | EOp !Op !(Exp t) !(Exp t)
+  | EIf !(Exp t) (Exp t) (Exp t)
+  | ELet !(Exp t) !(Exp t) !(Exp t)
+  | EFunApp !(Exp t) !(Exp t)
+  deriving (Generic, Eq)
 
 instance Show Value where
   show (VInt n)      = show n
   show (VBool True)  = "true"
   show (VBool False) = "false"
+  show (VFun s v)    = "lambda " ++ s ++ " -> " ++ show v
   show (VFloat f)    = show f
   show VNaN          = "NaN"
 
@@ -46,6 +55,8 @@ instance Show Op where
   show Lte   = "<="
   show Geq   = ">="
   show Eq    = "=="
+  show Lt    = "<"
+  show Gt    = ">"
 
 instance Show (Exp t) where
   show (PosExp _ e) = show e
@@ -55,6 +66,10 @@ instance Show (Exp_ t) where
   show (EOp op e1 e2) = show e1 ++ " " ++  show op ++ " " ++ show e2
   show (EBool True) = "true"
   show (EBool False) = "false"
+  show (ELet l e1 e2) = "let " ++ show l ++ " = " ++ show e1 ++ " in " ++ show e2
+  show (EFun l e) = "lambda " ++ show l ++ " -> " ++ show e
+  show (EFunApp e1 e2) = show e1 ++ " $ " ++ show e2
   show (EIf e1 e2 e3) = "if " ++ show e1 ++ " then  " ++ show e2 ++ " else " ++ show e3
   show (EFloat f) = show f
+  show (ELid s)   = s
   show ENaN = "NaN"
