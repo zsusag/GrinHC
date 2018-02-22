@@ -11,13 +11,9 @@ import Error
 %tokentype { Token }
 %error { parseError }
 
-%nonassoc '<=' '>=' '==' '<' '>' then else
-%right in
+%nonassoc '<=' '>=' '==' '<' '>'
 %left '+' '-'
 %left '*' '/'
-%left '$'
-%left '->'
-
 
 %token
      '('        { TokenLParen _}
@@ -27,9 +23,9 @@ import Error
      '*'        { TokenMult _}
      '/'        { TokenDiv _}
      '='        { TokenSet _}
-     '$'        { TokenDollar _}
      '<'        { TokenLess _}
      '>'        { TokenGreat _}
+     '%'        { TokenMod _}
      '<='       { TokenLte _}
      '>='       { TokenGeq _}
      '=='       { TokenEq _}
@@ -52,8 +48,12 @@ import Error
 exp :: { Exp Pos }
 exp : if exp then exp else exp  { PosExp (tokenPosition $1) (EIf $2 $4 $6) }
     | let lid '=' exp in exp    { PosExp (tokenPosition $1) (ELet (extractTokenContents $2) $4 $6) }
-    | exp '$' exp               { PosExp (extractExpPos $1) (EFunApp $1 $3) }
-    | exp1                      { $1 }
+    | fun                       { $1 }
+    | fapp                      { $1 }
+
+fapp :: { Exp Pos }
+fapp : fapp exp1                { PosExp (extractExpPos $1) (EFunApp $1 $2) }
+     | exp1                     { $1 }
 
 exp1 :: { Exp Pos}
 exp1 : exp1 '+' exp1            { PosExp (tokenPosition $2) (EOp Plus $1 $3) }
@@ -65,6 +65,7 @@ exp1 : exp1 '+' exp1            { PosExp (tokenPosition $2) (EOp Plus $1 $3) }
      | exp1 '==' exp1           { PosExp (tokenPosition $2) (EOp Eq $1 $3) }
      | exp1 '<' exp1            { PosExp (tokenPosition $2) (EOp Lt $1 $3) }
      | exp1 '>' exp1            { PosExp (tokenPosition $2) (EOp Gt $1 $3) }
+     | exp1 '%' exp1            { PosExp (tokenPosition $2) (EOp Mod $1 $3) }
      | '(' exp ')'              { $2 }
      | val                      { $1 }
 
@@ -73,7 +74,6 @@ val : int                       { extractTokenContents $1 }
     | float                     { extractTokenContents $1 }
     | bool                      { extractTokenContents $1 }
     | lid                       { extractTokenContents $1 }
-    | fun                       { $1 }
     | NaN                       { PosExp (tokenPosition $1) ENaN}
 
 fun :: { Exp Pos }
@@ -94,4 +94,3 @@ parseError :: [Token] -> a
 parseError (t:ts) = posError (tokenPosition t) "Parse Error" ""
 parseError [] = errorWithoutStackTrace "Parse Error: Reached EOF without closing expression"
 }
-
