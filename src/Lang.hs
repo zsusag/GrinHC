@@ -23,6 +23,7 @@ data Op = Plus
   | Eq
   | Lt
   | Gt
+  | Mod
   deriving (Generic, Eq)
 
 data Exp t = PosExp t (Exp_ t)
@@ -60,19 +61,20 @@ instance Show Op where
   show Eq    = "=="
   show Lt    = "<"
   show Gt    = ">"
+  show Mod   = "%"
 
 instance Show (Exp t) where
   show (PosExp _ e) = show e
 
 instance Show (Exp_ t) where
   show (EInt n) = show n
-  show (EOp op e1 e2) = show e1 ++ " " ++  show op ++ " " ++ show e2
+  show (EOp op e1 e2) = "(" ++ show e1 ++ " " ++  show op ++ " " ++ show e2 ++ ")"
   show (EBool True) = "true"
   show (EBool False) = "false"
   show (ELet l e1 e2) = "let " ++ show l ++ " = " ++ show e1 ++ " in " ++ show e2
   show (EFun l e) = "lambda " ++ show l ++ " -> " ++ show e
   show (ERec f l v) = "fix " ++ show f ++ " " ++ show l ++ " -> " ++ show v
-  show (EFunApp e1 e2) = show e1 ++ " $ " ++ show e2
+  show (EFunApp e1 e2) = show e1 ++ " " ++ show e2
   show (EIf e1 e2 e3) = "if " ++ show e1 ++ " then  " ++ show e2 ++ " else " ++ show e3
   show (EFloat f) = show f
   show (ELid s)   = s
