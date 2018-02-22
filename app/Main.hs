@@ -16,6 +16,7 @@ data Args = Args
   { file :: FilePath
   , printTS :: Bool
   , printAST :: Bool
+  , printSteps :: Bool
   }
 
 parseLex :: Parser Bool
@@ -30,11 +31,17 @@ parseParse = switch
   <> short 'p'
   <> help "Print the AST instead of evaluating code")
 
+parseStep :: Parser Bool
+parseStep = switch
+  (long "step"
+  <> short 's'
+  <> help "Print out every step of evaluation")
+
 parseFilePath :: Parser FilePath
 parseFilePath = argument str (metavar "FILE")
 
 parseArgs :: Parser Args
-parseArgs = Args <$> parseFilePath <*> parseLex <*> parseParse
+parseArgs = Args <$> parseFilePath <*> parseLex <*> parseParse <*> parseStep
 
 parseArgInfo :: ParserInfo Args
 parseArgInfo = info (parseArgs <**> helper)
@@ -44,7 +51,7 @@ parseArgInfo = info (parseArgs <**> helper)
 
 main :: IO ()
 main = do
-   (Args file printTS printAST) <- execParser parseArgInfo
+   (Args file printTS printAST printSteps) <- execParser parseArgInfo
    handle <- tryOpen file
    contents <- hGetContents handle
    if null contents then
@@ -54,7 +61,7 @@ main = do
      printAndExit printTS tokenStream handle
      let ast = Parser.parse tokenStream
      printAndExit printAST ast handle
-     putStrLn $ evaluate ast
+     evaluate ast printSteps
      hClose handle
        where
          tryOpen filePath = case filePath of
