@@ -3,57 +3,61 @@ module Eval where
 import Lang
 import Error
 
-evaluate :: Exp Pos -> String
-evaluate = show . simplify
+evaluate :: Exp Pos -> Bool -> IO ()
+evaluate e b
+ | isValue e = print e
+ | b = do
+     print e
+     evaluate (step e) b
+ | otherwise = evaluate (step e) b
 
-evaluateToExp :: Exp Pos -> Exp_ Pos
-evaluateToExp (PosExp p e) = case simplify (PosExp p e) of
-  (VInt n)  -> EInt n
-  (VBool b) -> EBool b
-  (VFloat f) -> EFloat f
-  (VFun s e') -> EFun (PosExp p (ELid s)) e'
-  (VRec f s e') -> ERec (PosExp p (ELid f)) (PosExp p (ELid s)) e'
-  VNaN -> ENaN
-
-simplify :: Exp Pos -> Value
-simplify (PosExp _ (EInt n)) = VInt n
-simplify (PosExp _ (EBool b)) = VBool b
-simplify (PosExp _ (EFloat f)) = VFloat f
-simplify (PosExp p (ELid _)) = posError p "Evaluation Error" "Dangling identifier"
-simplify (PosExp _ ENaN) = VNaN
-simplify (PosExp p (EFun e1 e2)) = case e1 of
-  (PosExp _ (ELid s)) -> VFun s e2
+step :: Exp Pos -> Exp Pos
+step (PosExp p (ELid _)) = posError p "Evaluation Error" "Dangling identifier"
+step e@(PosExp p (EFun e1 _)) = case e1 of
+  (PosExp _ (ELid _)) -> e
   _ -> posError p "Evaluation Error" ": variable for function is not an identifier"
-simplify (PosExp p (ERec e1 e2 e3)) = case e1 of
-  (PosExp _ (ELid f)) -> case e2 of
-    (PosExp _ (ELid s)) -> VRec f s e3
+step e@(PosExp p (ERec e1 e2 _)) = case e1 of
+  (PosExp _ (ELid _)) -> case e2 of
+    (PosExp _ (ELid _)) -> e
     _ -> posError p "Evaluation Error" ": variable for function is not an identifier"
   _ -> posError p "Evaluation Error" ": variable for function is not an identifier"
-simplify (PosExp p (EOp op e1 e2)) = 
-  case (simplify e1, simplify e2) of
-    (VInt n1, VInt n2) -> intOp p op n1 n2
-    (VInt n, VFloat f) -> floatOp p op (fromIntegral n) f
-    (VFloat f, VInt n) -> floatOp p op f (fromIntegral n)
-    (VFloat f1, VFloat f2) -> floatOp p op f1 f2
-    (VNaN, _) -> VNaN
-    (_, VNaN) -> VNaN
-    _ -> posError p "Evaluation Error" ": cannot perform arithmetic operation on non-number values"
-simplify (PosExp p (EIf e1 e2 e3)) = if b then simplify e2 else simplify e3
-  where b = case simplify e1 of
-              (VBool b') -> b'
-              _ -> posError p "Evaluation Error" ": expected a boolean value in guard of conditional"
-simplify (PosExp p (ELet e1 e2 e3)) = case e1 of
-  (PosExp _ (ELid s)) -> let v = evaluateToExp e2
-    in simplify $ subst v (ELid s) e3
+step (PosExp p (EOp op e1 e2))
+  | isValue e1 && isValue e2 = case (e1,e2) of
+      (PosExp _ (EInt n1), PosExp _ (EInt n2)) -> intOp p op n1 n2
+      (PosExp _ (EInt n), PosExp _ (EFloat f)) -> floatOp p op (fromIntegral n) f
+      (PosExp _ (EFloat f), PosExp _ (EInt n)) -> floatOp p op f (fromIntegral n)
+      (PosExp _ (EFloat f1), PosExp _ (EFloat f2)) -> floatOp p op f1 f2
+      (PosExp _ ENaN, _) -> e1
+      (_, PosExp _ ENaN) -> e2
+      _ -> posError p "Evaluation Error" ": cannot perform arithmetic operation on non-number values"
+  | isValue e1 = PosExp p (EOp op e1 (step e2))
+  | otherwise = PosExp p (EOp op (step e1) e2)
+step (PosExp p (EIf e1 e2 e3))
+  | isValue e1 = case expToValue e1 of
+      (VBool True) -> if isValue e2
+                      then e2
+                      else PosExp p (EIf e1 (step e2) e3)
+      (VBool False) -> if isValue e3
+                       then e3
+                       else PosExp p (EIf e1 e2 (step e3))
+      _ -> posError p "Evaluation Error" ": expected a boolean value in guard of conditional"
+  | otherwise = PosExp p (EIf (step e1) e2 e3)
+step (PosExp p (ELet e1 e2 e3)) = case e1 of
+  (PosExp _ (ELid s))
+    | isValue e2 && isValue e3 -> e3
+    | isValue e2 -> subst (extractExp e2) (ELid s) e3
+    | otherwise -> PosExp p (ELet e1 (step e2) e3)
   _ -> posError p "Evaluation Error" ": variable for let-binding is not an identifier"
-simplify (PosExp p (EFunApp e1 e2)) = let e1' = evaluateToExp e1
-  in case e1' of
-  (EFun (PosExp _ (ELid l)) e) -> let v = evaluateToExp e2
-    in simplify $ subst v (ELid l) e
-  (ERec (PosExp _ (ELid f)) (PosExp _ (ELid l)) e) ->
-    let v = evaluateToExp e2
-    in simplify $ subst e1' (ELid f) (subst v (ELid l) e)
-  _ -> posError p "Evaluation Error" ": expression does not evaluate to function"
+step (PosExp p (EFunApp e1 e2))
+  | isValue e1 && isValue e2 = let e1' = extractExp e1 in
+      case e1' of
+        (EFun (PosExp _ (ELid l)) e) -> subst (extractExp e2) (ELid l) e
+        (ERec (PosExp _ (ELid f)) (PosExp _ (ELid l)) e) ->
+          subst e1' (ELid f) (subst (extractExp e2) (ELid l) e)
+        _ -> posError p "Evaluation Error" ": expression does not evaluate to a function"
+  | isValue e1 = PosExp p (EFunApp e1 (step e2))
+  | otherwise = PosExp p (EFunApp (step e1) e2)
+step e = e
 
 subst :: Exp_ Pos -> Exp_ Pos -> Exp Pos -> Exp Pos
 subst val var (PosExp p e) = if e == var
@@ -77,38 +81,65 @@ subst val var (PosExp p e) = if e == var
     PosExp p $ EFunApp (subst val var e1) (subst val var e2)
   _ -> PosExp p e
 
-intOp :: Pos -> Op -> Int -> Int -> Value
-intOp _ Plus n1 n2  = VInt $ n1 + n2
-intOp _ Minus n1 n2 = VInt $ n1 - n2
-intOp _ Mult n1 n2  = VInt $ n1 * n2
-intOp _ Lte n1 n2   = VBool $ n1 <= n2
-intOp _ Geq n1 n2   = VBool $ n1 >= n2
-intOp _ Eq n1 n2    = VBool $ n1 == n2
-intOp _ Lt n1 n2    = VBool $ n1 < n2
-intOp _ Gt n1 n2    = VBool $ n1 > n2
+extractExp :: Exp Pos -> Exp_ Pos
+extractExp (PosExp _ e@(EInt _)) = e
+extractExp (PosExp _ e@(EFloat _)) = e
+extractExp (PosExp _ e@(EBool _)) = e
+extractExp (PosExp _ e@(EFun _ _)) = e
+extractExp (PosExp _ e@ERec{}) = e
+extractExp (PosExp _ ENaN) = ENaN
+extractExp _ = error "This should never happen..."
+
+expToValue :: Exp Pos -> Value
+expToValue (PosExp _ (EInt n)) = VInt n
+expToValue (PosExp _ (EFloat f)) = VFloat f
+expToValue (PosExp _ (EBool b)) = VBool b
+expToValue (PosExp _ (EFun (PosExp _ (ELid s)) e)) = VFun s e
+expToValue (PosExp _ (ERec (PosExp _ (ELid f)) (PosExp _ (ELid s)) e)) = VRec f s e
+expToValue (PosExp _ ENaN) = VNaN
+expToValue (PosExp p _) = posError p "Evaluation Error" ": expression is not a value"
+
+isValue :: Exp Pos -> Bool
+isValue (PosExp _ (EInt _)) = True
+isValue (PosExp _ (EBool _)) = True
+isValue (PosExp _ (EFloat _)) = True
+isValue (PosExp _ (EFun _ _)) = True
+isValue (PosExp _ ERec{}) = True
+isValue (PosExp _ ENaN) = True
+isValue _ = False
+
+intOp :: Pos -> Op -> Int -> Int -> Exp Pos
+intOp p Plus n1 n2  = PosExp p (EInt $ n1 + n2)
+intOp p Minus n1 n2 = PosExp p (EInt $ n1 - n2)
+intOp p Mult n1 n2  = PosExp p (EInt $ n1 * n2)
+intOp p Lte n1 n2   = PosExp p (EBool $ n1 <= n2)
+intOp p Geq n1 n2   = PosExp p (EBool $ n1 >= n2)
+intOp p Eq n1 n2    = PosExp p (EBool $ n1 == n2)
+intOp p Lt n1 n2    = PosExp p (EBool $ n1 < n2)
+intOp p Gt n1 n2    = PosExp p (EBool $ n1 > n2)
 intOp p Div n1 n2
-  | n1 == 0 && n2 == 0 = VNaN
+  | n1 == 0 && n2 == 0 = PosExp p ENaN
   | n2 == 0 = posError p "Evaluation Error" ": divide by zero"
-  | otherwise = VInt $ n1 `div` n2
+  | otherwise = PosExp p (EInt $ n1 `div` n2)
 intOp p Mod n1 n2
-  | n1 == 0 && n2 == 0 = VNaN
+  | n1 == 0 && n2 == 0 = PosExp p ENaN
   | n2 == 0 = posError p "Evaluation Error" ": divide by zero"
-  | otherwise = VInt $ n1 `mod` n2
+  | otherwise = PosExp p (EInt $ n1 `mod` n2)
 {-# INLINE intOp #-}
 
-floatOp :: Pos -> Op -> Float -> Float -> Value
-floatOp _ Plus f1 f2  = VFloat $ f1 + f2 
-floatOp _ Minus f1 f2 = VFloat $ f1 - f2
-floatOp _ Mult f1 f2  = VFloat $ f1 * f2
-floatOp _ Lte f1 f2   = VBool $ f1 <= f2
-floatOp _ Geq f1 f2   = VBool $ f1 >= f2
-floatOp _ Eq f1 f2    = VBool $ f1 == f2
-floatOp _ Lt f1 f2    = VBool $ f1 < f2
-floatOp _ Gt f1 f2    = VBool $ f1 > f2
+floatOp :: Pos -> Op -> Float -> Float -> Exp Pos
+floatOp p Plus f1 f2  = PosExp p (EFloat $ f1 + f2)
+floatOp p Minus f1 f2 = PosExp p (EFloat $ f1 - f2)
+floatOp p Mult f1 f2  = PosExp p (EFloat $ f1 * f2)
+floatOp p Lte f1 f2   = PosExp p (EBool $ f1 <= f2)
+floatOp p Geq f1 f2   = PosExp p (EBool $ f1 >= f2)
+floatOp p Eq f1 f2    = PosExp p (EBool $ f1 == f2)
+floatOp p Lt f1 f2    = PosExp p (EBool $ f1 < f2)
+floatOp p Gt f1 f2    = PosExp p (EBool $ f1 > f2)
 floatOp p Div f1 f2
-  | f1 == 0 && f2 == 0 = VNaN
+  | f1 == 0 && f2 == 0 = PosExp p ENaN
   | f2 == 0 = posError p "Evaluation Error" ": divide by zero"
-  | otherwise = VFloat $ f1 / f2
+  | otherwise = PosExp p (EFloat $ f1 / f2)
 floatOp p Mod _ _ = posError p "Evaluation Error" ": cannot take the modulus of a float"
 
 {-# INLINE floatOp #-}
