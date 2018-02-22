@@ -3,11 +3,13 @@ COMMAND="stack"
 OPTIONS=" exec GrinHC -- "
 LEX_COMMAND="--lex "
 PARSE_COMMAND="--parse "
+STEP_COMMAND="--step "
 
 TEST_SUFFIX="/*.in"
 EVAL_SUFFIX=".out"
 LEX_SUFFIX=".out.lex"
 PARSE_SUFFIX=".out.parse"
+STEP_SUFFIX=".out.step"
 
 #EVALFILES=$TEST_DIR$EVAL_SUFFIX
 #LEXFILES=$TEST_DIR$LEX_SUFFIX
@@ -31,6 +33,7 @@ then
         eval_outfile="${file%.*}"$EVAL_SUFFIX
         lex_outfile="${file%.*}"$LEX_SUFFIX
         parse_outfile="${file%.*}"$PARSE_SUFFIX
+        step_outfile="${file%.*}"$STEP_SUFFIX
 
         # Generate outfiles
         echo -n "."
@@ -39,6 +42,8 @@ then
         eval $COMMAND$OPTIONS$LEX_COMMAND$file > $lex_outfile 2>&1
         echo -n "."
         eval $COMMAND$OPTIONS$PARSE_COMMAND$file > $parse_outfile 2>&1
+        echo -n "."
+        eval $COMMAND$OPTIONS$STEP_COMMAND$file > $step_outfile 2>&1
         
         echo "Done"
     done
