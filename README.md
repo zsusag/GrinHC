@@ -5,10 +5,16 @@ A compiler written in [Haskell](https://www.haskell.org) for the CSC-312 course 
 Currently, GrinHC supports only the following grammar:
 ```
 e ::= n | (e) | e1 + e2 | e1 - e2 | e1 * e2 | e1 / e2
-    | true | false | e1 <= e2 | if e1 then e2 else e3
-    | f | NaN
+    | e1 % e2 | true | false | e1 <= e2 | e1 == e2
+    | e1 >= e2 | e1 < e2 | e1 > e2 | if e1 then e2 else e3
+    | f | NaN | x | let x = e1 in e2 | lambda x -> e
+    | fix f x -> e | e1 e2
 ```
-where `n` is an integer literal, `f` is a floating point literal of the form
+where `n` is an integer literal, `x` is a variable identifier of the form
+```
+[a-z][a-z A-Z 0-9 ' _]+
+```
+`f` is a floating point literal of the form
 ```
 [0-9]+.[0-9]+
 ```
@@ -66,6 +72,17 @@ $ stack test
 ```
 
 ## Changelog
+### [assignment-04] --- 2018-02-21
+#### New Features
+* Can now define functions, both recursive and not, let-bindings, and function applications
+* Added `--step` command line argument to print out all of the evaluation steps
+* Added `%`, `<`, `>`, `==`, and`>=` operators
+#### Changes to Existing Features
+* Transitioned from Big-Step evaluation to Small-Step evaluation
+* Expanded test suite to include tests for new operators, functions, and let-bindings
+    * `stack test` will also now test whether the steps taken during evaluation are correct
+#### Known Bugs
+* Given an expression of the form `5 * f 3` where `f` is a function the parser currently builds the following AST, `(5 * f) 3` instead of the correct AST, `5 * (f 3)`. As a result, failure to include disambiguating parentheses will result in an evaluation error.
 ### [assignment-03] --- 2018-02-12
 #### New Features
 * Error messages new report position information (line,column)
