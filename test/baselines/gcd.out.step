@@ -1,0 +1,21 @@
+let gcd = fix f x -> fix g y -> if (y == 0) then  x else f y (x % y) in gcd 510 40
+fix f x -> fix g y -> if (y == 0) then  x else f y (x % y) 510 40
+fix g y -> if (y == 0) then  510 else fix f x -> fix g y -> if (y == 0) then  x else f y (x % y) y (510 % y) 40
+if (40 == 0) then  510 else fix f x -> fix g y -> if (y == 0) then  x else f y (x % y) 40 (510 % 40)
+if false then  510 else fix f x -> fix g y -> if (y == 0) then  x else f y (x % y) 40 (510 % 40)
+if false then  510 else fix g y -> if (y == 0) then  40 else fix f x -> fix g y -> if (y == 0) then  x else f y (x % y) y (40 % y) (510 % 40)
+if false then  510 else fix g y -> if (y == 0) then  40 else fix f x -> fix g y -> if (y == 0) then  x else f y (x % y) y (40 % y) 30
+if false then  510 else if (30 == 0) then  40 else fix f x -> fix g y -> if (y == 0) then  x else f y (x % y) 30 (40 % 30)
+if false then  510 else if false then  40 else fix f x -> fix g y -> if (y == 0) then  x else f y (x % y) 30 (40 % 30)
+if false then  510 else if false then  40 else fix g y -> if (y == 0) then  30 else fix f x -> fix g y -> if (y == 0) then  x else f y (x % y) y (30 % y) (40 % 30)
+if false then  510 else if false then  40 else fix g y -> if (y == 0) then  30 else fix f x -> fix g y -> if (y == 0) then  x else f y (x % y) y (30 % y) 10
+if false then  510 else if false then  40 else if (10 == 0) then  30 else fix f x -> fix g y -> if (y == 0) then  x else f y (x % y) 10 (30 % 10)
+if false then  510 else if false then  40 else if false then  30 else fix f x -> fix g y -> if (y == 0) then  x else f y (x % y) 10 (30 % 10)
+if false then  510 else if false then  40 else if false then  30 else fix g y -> if (y == 0) then  10 else fix f x -> fix g y -> if (y == 0) then  x else f y (x % y) y (10 % y) (30 % 10)
+if false then  510 else if false then  40 else if false then  30 else fix g y -> if (y == 0) then  10 else fix f x -> fix g y -> if (y == 0) then  x else f y (x % y) y (10 % y) 0
+if false then  510 else if false then  40 else if false then  30 else if (0 == 0) then  10 else fix f x -> fix g y -> if (y == 0) then  x else f y (x % y) 0 (10 % 0)
+if false then  510 else if false then  40 else if false then  30 else if true then  10 else fix f x -> fix g y -> if (y == 0) then  x else f y (x % y) 0 (10 % 0)
+if false then  510 else if false then  40 else if false then  30 else 10
+if false then  510 else if false then  40 else 10
+if false then  510 else 10
+10

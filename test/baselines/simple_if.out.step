@@ -1,0 +1,4 @@
+if (2 <= 5) then  (5 + 2) else (5 - 2)
+if true then  (5 + 2) else (5 - 2)
+if true then  7 else (5 - 2)
+7

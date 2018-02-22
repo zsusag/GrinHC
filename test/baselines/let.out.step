@@ -1,0 +1,5 @@
+let pred = (5 >= 2.1) in if pred then  (5 * 2.1) else (5 / 2.1)
+let pred = true in if pred then  (5 * 2.1) else (5 / 2.1)
+if true then  (5 * 2.1) else (5 / 2.1)
+if true then  10.5 else (5 / 2.1)
+10.5
