@@ -62,6 +62,10 @@ subst val var (PosExp p e) = if e == var
   (EFun (PosExp p' e1) e2) -> if e1 == var
       then PosExp p e
       else PosExp p $ EFun (subst val var (PosExp p' e1)) (subst val var e2)
+  (ERec (PosExp p1 e1) (PosExp p2 e2) e3)
+    | e1 == var -> PosExp p e
+    | e2 == var -> PosExp p e
+    | otherwise -> PosExp p $ ERec (subst val var (PosExp p1 e1)) (subst val var (PosExp p2 e2)) (subst val var e3) 
   (EOp op e1 e2) ->
     PosExp p $ EOp op (subst val var e1) (subst val var e2)
   (EIf e1 e2 e3) ->
@@ -86,6 +90,10 @@ intOp p Div n1 n2
   | n1 == 0 && n2 == 0 = VNaN
   | n2 == 0 = posError p "Evaluation Error" ": divide by zero"
   | otherwise = VInt $ n1 `div` n2
+intOp p Mod n1 n2
+  | n1 == 0 && n2 == 0 = VNaN
+  | n2 == 0 = posError p "Evaluation Error" ": divide by zero"
+  | otherwise = VInt $ n1 `mod` n2
 {-# INLINE intOp #-}
 
 floatOp :: Pos -> Op -> Float -> Float -> Value
@@ -101,4 +109,6 @@ floatOp p Div f1 f2
   | f1 == 0 && f2 == 0 = VNaN
   | f2 == 0 = posError p "Evaluation Error" ": divide by zero"
   | otherwise = VFloat $ f1 / f2
+floatOp p Mod _ _ = posError p "Evaluation Error" ": cannot take the modulus of a float"
+
 {-# INLINE floatOp #-}
