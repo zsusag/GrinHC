@@ -13,7 +13,7 @@ import Error
 
 %nonassoc '<=' '>=' '==' '<' '>'
 %left '+' '-'
-%left '*' '/'
+%left '*' '/' '%'
 
 %token
      '('        { TokenLParen _}
