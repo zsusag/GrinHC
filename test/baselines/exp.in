@@ -1,5 +1,5 @@
-let exp = fix f x ->
-  fix g y ->
+let exp :: Int -> Int -> Int = fix f (x::Int)::Int ->
+  fix g (y::Int)::Int ->
     if y == 0
     then 1
     else x * (f x (y - 1))

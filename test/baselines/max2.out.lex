@@ -1,1 +1,1 @@
-[let,max2,=,lambda,x,->,lambda,y,->,if,x,>,y,then,x,else,y,in,let,a,=,5,in,let,b,=,2,in,max2,a,b]
+[let,max2,:,:,Int,->,Int,->,Int,=,lambda,(,x,:,:,Int,),:,:,Int,->,lambda,(,y,:,:,Int,),:,:,Int,->,if,x,>,y,then,x,else,y,in,let,a,:,:,Int,=,5,in,let,b,:,:,Int,=,2,in,max2,a,b]

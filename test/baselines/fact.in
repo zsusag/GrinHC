@@ -1,4 +1,4 @@
-let fact = fix f n ->
+let fact :: Int -> Int= fix f (n::Int)::Int ->
   if n > 0 then
     n * (f (n - 1))
   else
