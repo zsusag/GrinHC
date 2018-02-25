@@ -66,17 +66,17 @@ subst val var (PosExp p t e) = if e == var
   (EFun (PosExp p' t' e1) e2) -> if e1 == var
       then PosExp p t' e
       else PosExp p t' $ EFun (subst val var (PosExp p' t' e1)) (subst val var e2)
-  (ERec (PosExp p1 t e1) (PosExp p2 _ e2) e3)
-    | e1 == var -> PosExp p t e
-    | e2 == var -> PosExp p t e
-    | otherwise -> PosExp p t $ ERec (subst val var (PosExp p1 t e1)) (subst val var (PosExp p2 t e2)) (subst val var e3) 
+  (ERec (PosExp p1 t' e1) (PosExp p2 _ e2) e3)
+    | e1 == var -> PosExp p t' e
+    | e2 == var -> PosExp p t' e
+    | otherwise -> PosExp p t' $ ERec (subst val var (PosExp p1 t e1)) (subst val var (PosExp p2 t e2)) (subst val var e3) 
   (EOp op e1 e2) ->
     PosExp p t $ EOp op (subst val var e1) (subst val var e2)
   (EIf e1 e2 e3) ->
     PosExp p t $ EIf (subst val var e1) (subst val var e2) (subst val var e3)
-  (ELet (PosExp p' t e1) e2 e3) -> if e1 == var
-      then PosExp p t (ELet (PosExp p' t e1) (subst val var e2) e3)
-      else PosExp p t $ ELet (subst val var (PosExp p' t e1)) (subst val var e2) (subst val var e3)
+  (ELet (PosExp p' t' e1) e2 e3) -> if e1 == var
+      then PosExp p t' (ELet (PosExp p' t' e1) (subst val var e2) e3)
+      else PosExp p t' $ ELet (subst val var (PosExp p' t' e1)) (subst val var e2) (subst val var e3)
   (EFunApp e1 e2) ->
     PosExp p t $ EFunApp (subst val var e1) (subst val var e2)
   _ -> PosExp p t e
@@ -109,37 +109,37 @@ isValue (PosExp _ _ ENaN) = True
 isValue _ = False
 
 intOp :: Pos -> Op -> Int -> Int -> Exp Pos
-intOp p Plus n1 n2  = PosExp p TNone (EInt $ n1 + n2)
-intOp p Minus n1 n2 = PosExp p TNone (EInt $ n1 - n2)
-intOp p Mult n1 n2  = PosExp p TNone (EInt $ n1 * n2)
-intOp p Lte n1 n2   = PosExp p TNone (EBool $ n1 <= n2)
-intOp p Geq n1 n2   = PosExp p TNone (EBool $ n1 >= n2)
-intOp p Eq n1 n2    = PosExp p TNone (EBool $ n1 == n2)
-intOp p Lt n1 n2    = PosExp p TNone (EBool $ n1 < n2)
-intOp p Gt n1 n2    = PosExp p TNone (EBool $ n1 > n2)
+intOp p Plus n1 n2  = PosExp p TUnknown (EInt $ n1 + n2)
+intOp p Minus n1 n2 = PosExp p TUnknown (EInt $ n1 - n2)
+intOp p Mult n1 n2  = PosExp p TUnknown (EInt $ n1 * n2)
+intOp p Lte n1 n2   = PosExp p TUnknown (EBool $ n1 <= n2)
+intOp p Geq n1 n2   = PosExp p TUnknown (EBool $ n1 >= n2)
+intOp p Eq n1 n2    = PosExp p TUnknown (EBool $ n1 == n2)
+intOp p Lt n1 n2    = PosExp p TUnknown (EBool $ n1 < n2)
+intOp p Gt n1 n2    = PosExp p TUnknown (EBool $ n1 > n2)
 intOp p Div n1 n2
-  | n1 == 0 && n2 == 0 = PosExp p TNone  ENaN
+  | n1 == 0 && n2 == 0 = PosExp p TUnknown  ENaN
   | n2 == 0 = posError p "Evaluation Error" ": divide by zero"
-  | otherwise = PosExp p TNone  (EInt $ n1 `div` n2)
+  | otherwise = PosExp p TUnknown  (EInt $ n1 `div` n2)
 intOp p Mod n1 n2
-  | n1 == 0 && n2 == 0 = PosExp p TNone  ENaN
+  | n1 == 0 && n2 == 0 = PosExp p TUnknown  ENaN
   | n2 == 0 = posError p "Evaluation Error" ": divide by zero"
-  | otherwise = PosExp p TNone  (EInt $ n1 `mod` n2)
+  | otherwise = PosExp p TUnknown  (EInt $ n1 `mod` n2)
 {-# INLINE intOp #-}
 
 floatOp :: Pos -> Op -> Float -> Float -> Exp Pos
-floatOp p Plus f1 f2  = PosExp p TNone  (EFloat $ f1 + f2)
-floatOp p Minus f1 f2 = PosExp p TNone  (EFloat $ f1 - f2)
-floatOp p Mult f1 f2  = PosExp p TNone  (EFloat $ f1 * f2)
-floatOp p Lte f1 f2   = PosExp p TNone  (EBool $ f1 <= f2)
-floatOp p Geq f1 f2   = PosExp p TNone  (EBool $ f1 >= f2)
-floatOp p Eq f1 f2    = PosExp p TNone  (EBool $ f1 == f2)
-floatOp p Lt f1 f2    = PosExp p TNone  (EBool $ f1 < f2)
-floatOp p Gt f1 f2    = PosExp p TNone  (EBool $ f1 > f2)
+floatOp p Plus f1 f2  = PosExp p TUnknown  (EFloat $ f1 + f2)
+floatOp p Minus f1 f2 = PosExp p TUnknown  (EFloat $ f1 - f2)
+floatOp p Mult f1 f2  = PosExp p TUnknown  (EFloat $ f1 * f2)
+floatOp p Lte f1 f2   = PosExp p TUnknown  (EBool $ f1 <= f2)
+floatOp p Geq f1 f2   = PosExp p TUnknown  (EBool $ f1 >= f2)
+floatOp p Eq f1 f2    = PosExp p TUnknown  (EBool $ f1 == f2)
+floatOp p Lt f1 f2    = PosExp p TUnknown  (EBool $ f1 < f2)
+floatOp p Gt f1 f2    = PosExp p TUnknown  (EBool $ f1 > f2)
 floatOp p Div f1 f2
-  | f1 == 0 && f2 == 0 = PosExp p TNone  ENaN
+  | f1 == 0 && f2 == 0 = PosExp p TUnknown  ENaN
   | f2 == 0 = posError p "Evaluation Error" ": divide by zero"
-  | otherwise = PosExp p TNone  (EFloat $ f1 / f2)
+  | otherwise = PosExp p TUnknown  (EFloat $ f1 / f2)
 floatOp p Mod _ _ = posError p "Evaluation Error" ": cannot take the modulus of a float"
 
 {-# INLINE floatOp #-}

@@ -18,7 +18,8 @@ $lower = [a-z \_]
 
 $idchar  = [$lower $upper $digit \']
 
-@varid = $lower $idchar*
+@varlid  = $lower $idchar*
+@varuid = $upper $idchar*
 
 tokens :-
 
@@ -33,6 +34,7 @@ tokens :-
   \<                { tok (\p s -> TokenLess p) }
   \>                { tok (\p s -> TokenGreat p) }
   \%                { tok (\p s -> TokenMod p) }
+  \:                { tok (\p s -> TokenColon p) }
   "<="              { tok (\p s -> TokenLte p) }
   ">="              { tok (\p s -> TokenGeq p) }
   "=="              { tok (\p s -> TokenEq p) }
@@ -48,8 +50,9 @@ tokens :-
   else              { tok (\p s -> TokenElse p) }
   NaN               { tok (\p s -> TokenNaN p) }
   $digit+           { tok (\p s -> TokenInt p (read s)) }
-  $digit+\.$digit+  { (\p s -> TokenFloat p (read s)) }
-  @varid            { tok (\p s -> TokenLid p s) }
+  $digit+\.$digit+  { tok (\p s -> TokenFloat p (read s)) }
+  @varlid            { tok (\p s -> TokenLid p s) }
+  @varuid           { tok (\p s -> TokenUid p s) }
 {
 -- Some action helpers:
 tok f p s = f p s
@@ -81,6 +84,8 @@ data Token
   | TokenIn AlexPosn
   | TokenLambda AlexPosn
   | TokenFix AlexPosn
+  | TokenColon AlexPosn
+  | TokenUid AlexPosn !String
 
 instance Show Token where
   show (TokenLParen _) = "("
@@ -110,6 +115,8 @@ instance Show Token where
   show (TokenIn _)     = "in"
   show (TokenLambda _) = "lambda"
   show (TokenFix _)    = "fix"
+  show (TokenColon _)  = ":"
+  show (TokenUid _ s)  = s
 
 tokenPosition :: Token -> Pos
 tokenPosition (TokenLParen (AlexPn _ line col))   = (line,col)
@@ -138,4 +145,6 @@ tokenPosition (TokenLet (AlexPn _ line col))      = (line,col)
 tokenPosition (TokenIn (AlexPn _ line col))       = (line,col)
 tokenPosition (TokenLambda (AlexPn _ line col))   = (line,col)
 tokenPosition (TokenFix (AlexPn _ line col))      = (line,col)
+tokenPosition (TokenColon (AlexPn _ line col))    = (line,col)
+tokenPosition (TokenUid (AlexPn _ line col) _)    = (line,col)
 }

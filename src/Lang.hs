@@ -5,6 +5,13 @@ import GHC.Generics (Generic)
 
 type Pos = (Int,Int)
 
+data Typ = TInt
+  | TBool
+  | TFloat
+  | TArr !Typ !Typ
+  | TUnknown
+  deriving(Generic, Eq)
+
 data Value = VInt {-# UNPACK #-} !Int
   | VBool !Bool
   | VFloat {-# UNPACK #-} !Float
@@ -26,7 +33,7 @@ data Op = Plus
   | Mod
   deriving (Generic, Eq)
 
-data Exp t = PosExp t (Exp_ t)
+data Exp t = PosExp t Typ (Exp_ t)
   deriving (Eq)
 
 data Exp_ t = EInt !Int
@@ -64,7 +71,7 @@ instance Show Op where
   show Mod   = "%"
 
 instance Show (Exp t) where
-  show (PosExp _ e) = show e
+  show (PosExp _ _ e) = show e
 
 instance Show (Exp_ t) where
   show (EInt n) = show n
