@@ -2,15 +2,21 @@
 module Lang where
 
 import GHC.Generics (Generic)
+import Control.DeepSeq (NFData)
+import qualified Data.Map.Strict as Map
 
 type Pos = (Int,Int)
+
+type Context = Map.Map String Typ
 
 data Typ = TInt
   | TBool
   | TFloat
   | TArr !Typ !Typ
   | TUnknown
-  deriving(Generic, Eq)
+  deriving(Generic)
+
+instance NFData Typ
 
 data Value = VInt {-# UNPACK #-} !Int
   | VBool !Bool
@@ -39,7 +45,7 @@ data Exp t = PosExp t Typ (Exp_ t)
 data Exp_ t = EInt !Int
   | EFloat !Float
   | EBool !Bool
-  | ELid !String
+  | EVar !String
   | EFun !(Exp t) !(Exp t)
   | ERec !(Exp t) !(Exp t) !(Exp t)
   | ENaN
@@ -48,6 +54,13 @@ data Exp_ t = EInt !Int
   | ELet !(Exp t) !(Exp t) !(Exp t)
   | EFunApp !(Exp t) !(Exp t)
   deriving (Generic, Eq)
+
+instance Show Typ where
+  show TInt = "Int"
+  show TFloat = "Float"
+  show TBool = "Bool"
+  show (TArr t1 t2) = show t1 ++ " -> " ++ show t2
+  show TUnknown = "Unknown"
 
 instance Show Value where
   show (VInt n)      = show n
@@ -84,5 +97,14 @@ instance Show (Exp_ t) where
   show (EFunApp e1 e2) = show e1 ++ " " ++ show e2
   show (EIf e1 e2 e3) = "if " ++ show e1 ++ " then  " ++ show e2 ++ " else " ++ show e3
   show (EFloat f) = show f
-  show (ELid s)   = s
+  show (EVar s)   = s
   show ENaN = "NaN"
+
+instance Eq Typ where
+  TInt == TInt = True
+  TFloat == TFloat = True
+  TBool == TBool = True
+  (TArr t1 t2) == (TArr t1' t2') = (t1 == t1' && t2 == t2') || (t1 == t2' && t2 == t1')
+  TUnknown == TUnknown = True
+  _ == _ = False
+    
