@@ -39,6 +39,7 @@ tokens :-
   ">="              { tok (\p s -> TokenGeq p) }
   "=="              { tok (\p s -> TokenEq p) }
   "->"              { tok (\p s -> TokenArr p) }
+  "=>"              { tok (\p s -> TokenFat p) }
   let               { tok (\p s -> TokenLet p) }
   in                { tok (\p s -> TokenIn p) }
   lambda            { tok (\p s -> TokenLambda p) }
@@ -86,6 +87,7 @@ data Token
   | TokenFix AlexPosn
   | TokenColon AlexPosn
   | TokenUid AlexPosn !String
+  | TokenFat AlexPosn
 
 instance Show Token where
   show (TokenLParen _) = "("
@@ -117,6 +119,7 @@ instance Show Token where
   show (TokenFix _)    = "fix"
   show (TokenColon _)  = ":"
   show (TokenUid _ s)  = s
+  show (TokenFat _)    = "=>"
 
 tokenPosition :: Token -> Pos
 tokenPosition (TokenLParen (AlexPn _ line col))   = (line,col)
@@ -147,4 +150,5 @@ tokenPosition (TokenLambda (AlexPn _ line col))   = (line,col)
 tokenPosition (TokenFix (AlexPn _ line col))      = (line,col)
 tokenPosition (TokenColon (AlexPn _ line col))    = (line,col)
 tokenPosition (TokenUid (AlexPn _ line col) _)    = (line,col)
+tokenPosition (TokenFat (AlexPn _ line col))      = (line,col)
 }
