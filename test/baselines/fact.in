@@ -1,6 +1,6 @@
-let fact :: Int -> Int= fix f (n::Int)::Int ->
+let fact :: Int -> Int = fix f (n::Int)::Int =>
   if n > 0 then
-    n * (f (n - 1))
+    n * f (n - 1)
   else
     1
 in

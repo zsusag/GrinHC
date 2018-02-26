@@ -1,2 +1,2 @@
 let x :: Int = 5 in
-  lambda (x::Int)::Int-> x + x
+  lambda (x::Int)::Int => x + x

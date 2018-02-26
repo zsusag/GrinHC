@@ -1,1 +1,1 @@
-[let,x,:,:,Int,->,Int,=,lambda,(,y,:,:,Int,),:,:,Int,->,y,*,y,in,x,2]
+[let,x,:,:,Int,->,Int,=,lambda,(,y,:,:,Int,),:,:,Int,=>,y,*,y,in,x,2]

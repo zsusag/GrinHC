@@ -1,1 +1,1 @@
-GrinHC: Evaluation Error at (line 1, column 1): expected a boolean value in guard of conditional
+GrinHC: Type Error: at (line 1, column 1): expected a boolean value in guard of conditional

@@ -1,1 +1,1 @@
-[(,lambda,(,x,:,:,Int,),:,:,Int,->,lambda,(,y,:,:,Int,),:,:,Int,->,x,+,y,+,x,),5,2]
+[(,lambda,(,x,:,:,Int,),:,:,Int,->,Int,=>,lambda,(,y,:,:,Int,),:,:,Int,=>,x,+,y,+,x,),5,2]
