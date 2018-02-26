@@ -12,13 +12,13 @@ evaluate e b
  | otherwise = evaluate (step e) b
 
 step :: Exp Pos -> Exp Pos
-step (PosExp p _ (ELid _)) = posError p "Evaluation Error" "Dangling identifier"
+step (PosExp p _ (EVar _)) = posError p "Evaluation Error" ": dangling identifier"
 step e@(PosExp p _ (EFun e1 _)) = case e1 of
-  (PosExp _ _ (ELid _)) -> e
+  (PosExp _ _ (EVar _)) -> e
   _ -> posError p "Evaluation Error" ": variable for function is not an identifier"
 step e@(PosExp p _ (ERec e1 e2 _)) = case e1 of
-  (PosExp _ _ (ELid _)) -> case e2 of
-    (PosExp _ _ (ELid _)) -> e
+  (PosExp _ _ (EVar _)) -> case e2 of
+    (PosExp _ _ (EVar _)) -> e
     _ -> posError p "Evaluation Error" ": variable for function is not an identifier"
   _ -> posError p "Evaluation Error" ": variable for function is not an identifier"
 step (PosExp p t (EOp op e1 e2))
@@ -43,17 +43,17 @@ step (PosExp p t (EIf e1 e2 e3))
       _ -> posError p "Evaluation Error" ": expected a boolean value in guard of conditional"
   | otherwise = PosExp p t (EIf (step e1) e2 e3)
 step (PosExp p _ (ELet e1 e2 e3)) = case e1 of
-  (PosExp _ t (ELid s))
+  (PosExp _ t (EVar s))
     | isValue e2 && isValue e3 -> e3
-    | isValue e2 -> subst (extractExp e2) (ELid s) e3
+    | isValue e2 -> subst (extractExp e2) (EVar s) e3
     | otherwise -> PosExp p t (ELet e1 (step e2) e3)
   _ -> posError p "Evaluation Error" ": variable for let-binding is not an identifier"
 step (PosExp p t (EFunApp e1 e2))
   | isValue e1 && isValue e2 = let e1' = extractExp e1 in
       case e1' of
-        (EFun (PosExp _ _ (ELid l)) e) -> subst (extractExp e2) (ELid l) e
-        (ERec (PosExp _ _ (ELid f)) (PosExp _ _ (ELid l)) e) ->
-          subst e1' (ELid f) (subst (extractExp e2) (ELid l) e)
+        (EFun (PosExp _ _ (EVar l)) e) -> subst (extractExp e2) (EVar l) e
+        (ERec (PosExp _ _ (EVar f)) (PosExp _ _ (EVar l)) e) ->
+          subst e1' (EVar f) (subst (extractExp e2) (EVar l) e)
         _ -> posError p "Evaluation Error" ": expression does not evaluate to a function"
   | isValue e1 = PosExp p t (EFunApp e1 (step e2))
   | otherwise = PosExp p t (EFunApp (step e1) e2)
@@ -94,8 +94,8 @@ expToValue :: Exp Pos -> Value
 expToValue (PosExp _ _ (EInt n)) = VInt n
 expToValue (PosExp _ _ (EFloat f)) = VFloat f
 expToValue (PosExp _ _ (EBool b)) = VBool b
-expToValue (PosExp _ _ (EFun (PosExp _ _ (ELid s)) e)) = VFun s e
-expToValue (PosExp _ _ (ERec (PosExp _ _ (ELid f)) (PosExp _ _ (ELid s)) e)) = VRec f s e
+expToValue (PosExp _ _ (EFun (PosExp _ _ (EVar s)) e)) = VFun s e
+expToValue (PosExp _ _ (ERec (PosExp _ _ (EVar f)) (PosExp _ _ (EVar s)) e)) = VRec f s e
 expToValue (PosExp _ _ ENaN) = VNaN
 expToValue (PosExp p _ _ ) = posError p "Evaluation Error" ": expression is not a value"
 
