@@ -1,7 +1,9 @@
-{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing -fno-warn-unused-binds #-}
 module Main where
 
 import Data.Semigroup((<>))
+import qualified Data.Map.Strict as Map
+import Control.DeepSeq
 import Options.Applicative
 import Control.Monad
 import System.IO
@@ -11,6 +13,7 @@ import System.Exit
 import Lexer
 import Parser
 import Eval
+import Typecheck
 
 data Args = Args
   { file :: FilePath
@@ -61,7 +64,8 @@ main = do
      printAndExit printTS tokenStream handle
      let ast = Parser.parse tokenStream
      printAndExit printAST ast handle
-     evaluate ast printSteps
+     typ <- typecheck Map.empty ast
+     typ `deepseq` evaluate ast printSteps
      hClose handle
        where
          tryOpen filePath = case filePath of
