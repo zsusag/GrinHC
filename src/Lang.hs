@@ -24,6 +24,7 @@ data Value = VInt {-# UNPACK #-} !Int
   | VFun !String !(Exp Pos)
   | VRec !String !String !(Exp Pos)
   | VNaN
+  | VUnit
   deriving (Generic, Eq)
 
 -- Credit: Andrew Mack for helping me scraping my boilerplate
@@ -71,6 +72,7 @@ instance Show Value where
   show (VRec f l v)  = "fix " ++ f ++ " " ++ l ++ " -> " ++ show v
   show (VFloat f)    = show f
   show VNaN          = "NaN"
+  show VUnit          = "()"
 
 instance Show Op where
   show Plus  = "+"

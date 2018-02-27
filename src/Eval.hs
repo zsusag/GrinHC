@@ -106,6 +106,7 @@ isValue (PosExp _ _ (EFloat _)) = True
 isValue (PosExp _ _ (EFun _ _)) = True
 isValue (PosExp _ _ ERec{}) = True
 isValue (PosExp _ _ ENaN) = True
+isValue (PosExp _ _ EUnit) = True
 isValue _ = False
 
 intOp :: Pos -> Op -> Int -> Int -> Exp Pos
