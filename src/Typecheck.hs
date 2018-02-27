@@ -12,6 +12,7 @@ typecheck' :: Context -> Exp Pos -> Typ
 typecheck' _ (PosExp _ _ (EInt _)) = TInt
 typecheck' _ (PosExp _ _ (EFloat _)) = TFloat
 typecheck' _ (PosExp _ _ (EBool _)) = TBool
+typecheck' _ (PosExp _ _ EUnit) = TUnit
 typecheck' g (PosExp p _ (EVar s)) = case Map.lookup s g of
   (Just t') -> t'
   Nothing -> posError p "Type Error" (": " ++ s ++ " has undefined type")

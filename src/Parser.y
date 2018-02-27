@@ -49,33 +49,34 @@ import Error
 %%
 
 exp :: { Exp Pos }
-exp : exp '+' exp            { PosExp (tokenPosition $2) TUnknown (EOp Plus $1 $3) }
-    | exp '-' exp            { PosExp (tokenPosition $2) TUnknown (EOp Minus $1 $3) }
-    | exp '*' exp            { PosExp (tokenPosition $2) TUnknown (EOp Mult $1 $3) }
-    | exp '/' exp            { PosExp (tokenPosition $2) TUnknown (EOp Div $1 $3) }
-    | exp '<=' exp           { PosExp (tokenPosition $2) TUnknown (EOp Lte $1 $3) }
-    | exp '>=' exp           { PosExp (tokenPosition $2) TUnknown (EOp Geq $1 $3) }
-    | exp '==' exp           { PosExp (tokenPosition $2) TUnknown (EOp Eq $1 $3) }
-    | exp '<' exp            { PosExp (tokenPosition $2) TUnknown (EOp Lt $1 $3) }
-    | exp '>' exp            { PosExp (tokenPosition $2) TUnknown (EOp Gt $1 $3) }
-    | exp '%' exp            { PosExp (tokenPosition $2) TUnknown (EOp Mod $1 $3) } 
+exp : exp '+' exp            { PosExp (tokenPosition $2) TUnit (EOp Plus $1 $3) }
+    | exp '-' exp            { PosExp (tokenPosition $2) TUnit (EOp Minus $1 $3) }
+    | exp '*' exp            { PosExp (tokenPosition $2) TUnit (EOp Mult $1 $3) }
+    | exp '/' exp            { PosExp (tokenPosition $2) TUnit (EOp Div $1 $3) }
+    | exp '<=' exp           { PosExp (tokenPosition $2) TUnit (EOp Lte $1 $3) }
+    | exp '>=' exp           { PosExp (tokenPosition $2) TUnit (EOp Geq $1 $3) }
+    | exp '==' exp           { PosExp (tokenPosition $2) TUnit (EOp Eq $1 $3) }
+    | exp '<' exp            { PosExp (tokenPosition $2) TUnit (EOp Lt $1 $3) }
+    | exp '>' exp            { PosExp (tokenPosition $2) TUnit (EOp Gt $1 $3) }
+    | exp '%' exp            { PosExp (tokenPosition $2) TUnit (EOp Mod $1 $3) } 
     | lexp                     { $1 }
 
-lexp : if exp then exp else exp              { PosExp (tokenPosition $1) TUnknown (EIf $2 $4 $6) }
-     | let lid ':' ':' typ '=' exp in exp    { PosExp (tokenPosition $1) TUnknown (ELet (extractVar $2 $5) $7 $9) }
+lexp : if exp then exp else exp              { PosExp (tokenPosition $1) TUnit (EIf $2 $4 $6) }
+     | let lid ':' ':' typ '=' exp in exp    { PosExp (tokenPosition $1) TUnit (ELet (extractVar $2 $5) $7 $9) }
      | fun                                   { $1 }
      | fapp                                  { $1 }
 
 fapp :: { Exp Pos }
-fapp : fapp val                { PosExp (extractExpPos $1) TUnknown (EFunApp $1 $2) }
+fapp : fapp val                { PosExp (extractExpPos $1) TUnit (EFunApp $1 $2) }
      | val                     { $1 }
 
 val :: { Exp Pos }
 val : int                       { extractTokenContents $1 }
     | float                     { extractTokenContents $1 }
     | bool                      { extractTokenContents $1 }
-    | lid                       { extractVar $1 TUnknown }
+    | lid                       { extractVar $1 TUnit }
     | NaN                       { PosExp (tokenPosition $1) TFloat ENaN}
+    | '(' ')'                   { PosExp (tokenPosition $1) TUnit EUnit}
     | '(' exp ')'               { $2 }
 
 typ :: { Typ }
@@ -89,9 +90,9 @@ fun : lambda '(' lid ':' ':' typ ')' ':' ':' typ '=>' exp       { PosExp
     | fix lid '(' lid ':' ':' typ ')' ':' ':' typ '=>' exp      { PosExp (tokenPosition $1) (TArr $7 $11) (ERec (extractVar $2 (TArr $7 $11)) (extractVar $4 $7) $13) }
 {
 extractTokenContents :: Token -> Exp Pos
-extractTokenContents (TokenInt (AlexPn _ line col) n)   = PosExp (line,col) TUnknown (EInt n)
-extractTokenContents (TokenFloat (AlexPn _ line col) f) = PosExp (line,col) TUnknown (EFloat f)
-extractTokenContents (TokenBool (AlexPn _ line col) b)  = PosExp (line,col) TUnknown (EBool b)
+extractTokenContents (TokenInt (AlexPn _ line col) n)   = PosExp (line,col) TInt (EInt n)
+extractTokenContents (TokenFloat (AlexPn _ line col) f) = PosExp (line,col) TFloat (EFloat f)
+extractTokenContents (TokenBool (AlexPn _ line col) b)  = PosExp (line,col) TBool (EBool b)
 extractTokenContents _ = error "This should never happen. Weird..."
 
 extractVar :: Token -> Typ -> Exp Pos

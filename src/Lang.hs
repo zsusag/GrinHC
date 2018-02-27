@@ -13,7 +13,7 @@ data Typ = TInt
   | TBool
   | TFloat
   | TArr !Typ !Typ
-  | TUnknown
+  | TUnit
   deriving(Generic)
 
 instance NFData Typ
@@ -53,6 +53,7 @@ data Exp_ t = EInt !Int
   | EIf !(Exp t) (Exp t) (Exp t)
   | ELet !(Exp t) !(Exp t) !(Exp t)
   | EFunApp !(Exp t) !(Exp t)
+  | EUnit
   deriving (Generic, Eq)
 
 instance Show Typ where
@@ -60,7 +61,7 @@ instance Show Typ where
   show TFloat = "Float"
   show TBool = "Bool"
   show (TArr t1 t2) = show t1 ++ " -> " ++ show t2
-  show TUnknown = "Unknown"
+  show TUnit = "Unit"
 
 instance Show Value where
   show (VInt n)      = show n
@@ -99,12 +100,13 @@ instance Show (Exp_ t) where
   show (EFloat f) = show f
   show (EVar s)   = s
   show ENaN = "NaN"
+  show EUnit = "()"
 
 instance Eq Typ where
   TInt == TInt = True
   TFloat == TFloat = True
   TBool == TBool = True
   (TArr t1 t2) == (TArr t1' t2') = (t1 == t1' && t2 == t2') || (t1 == t2' && t2 == t1')
-  TUnknown == TUnknown = True
+  TUnit == TUnit = True
   _ == _ = False
     

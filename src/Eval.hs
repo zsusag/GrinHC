@@ -109,37 +109,37 @@ isValue (PosExp _ _ ENaN) = True
 isValue _ = False
 
 intOp :: Pos -> Op -> Int -> Int -> Exp Pos
-intOp p Plus n1 n2  = PosExp p TUnknown (EInt $ n1 + n2)
-intOp p Minus n1 n2 = PosExp p TUnknown (EInt $ n1 - n2)
-intOp p Mult n1 n2  = PosExp p TUnknown (EInt $ n1 * n2)
-intOp p Lte n1 n2   = PosExp p TUnknown (EBool $ n1 <= n2)
-intOp p Geq n1 n2   = PosExp p TUnknown (EBool $ n1 >= n2)
-intOp p Eq n1 n2    = PosExp p TUnknown (EBool $ n1 == n2)
-intOp p Lt n1 n2    = PosExp p TUnknown (EBool $ n1 < n2)
-intOp p Gt n1 n2    = PosExp p TUnknown (EBool $ n1 > n2)
+intOp p Plus n1 n2  = PosExp p TUnit (EInt $ n1 + n2)
+intOp p Minus n1 n2 = PosExp p TUnit (EInt $ n1 - n2)
+intOp p Mult n1 n2  = PosExp p TUnit (EInt $ n1 * n2)
+intOp p Lte n1 n2   = PosExp p TUnit (EBool $ n1 <= n2)
+intOp p Geq n1 n2   = PosExp p TUnit (EBool $ n1 >= n2)
+intOp p Eq n1 n2    = PosExp p TUnit (EBool $ n1 == n2)
+intOp p Lt n1 n2    = PosExp p TUnit (EBool $ n1 < n2)
+intOp p Gt n1 n2    = PosExp p TUnit (EBool $ n1 > n2)
 intOp p Div n1 n2
-  | n1 == 0 && n2 == 0 = PosExp p TUnknown  ENaN
+  | n1 == 0 && n2 == 0 = PosExp p TUnit  ENaN
   | n2 == 0 = posError p "Evaluation Error" ": divide by zero"
-  | otherwise = PosExp p TUnknown  (EInt $ n1 `div` n2)
+  | otherwise = PosExp p TUnit  (EInt $ n1 `div` n2)
 intOp p Mod n1 n2
-  | n1 == 0 && n2 == 0 = PosExp p TUnknown  ENaN
+  | n1 == 0 && n2 == 0 = PosExp p TUnit  ENaN
   | n2 == 0 = posError p "Evaluation Error" ": divide by zero"
-  | otherwise = PosExp p TUnknown  (EInt $ n1 `mod` n2)
+  | otherwise = PosExp p TUnit  (EInt $ n1 `mod` n2)
 {-# INLINE intOp #-}
 
 floatOp :: Pos -> Op -> Float -> Float -> Exp Pos
-floatOp p Plus f1 f2  = PosExp p TUnknown  (EFloat $ f1 + f2)
-floatOp p Minus f1 f2 = PosExp p TUnknown  (EFloat $ f1 - f2)
-floatOp p Mult f1 f2  = PosExp p TUnknown  (EFloat $ f1 * f2)
-floatOp p Lte f1 f2   = PosExp p TUnknown  (EBool $ f1 <= f2)
-floatOp p Geq f1 f2   = PosExp p TUnknown  (EBool $ f1 >= f2)
-floatOp p Eq f1 f2    = PosExp p TUnknown  (EBool $ f1 == f2)
-floatOp p Lt f1 f2    = PosExp p TUnknown  (EBool $ f1 < f2)
-floatOp p Gt f1 f2    = PosExp p TUnknown  (EBool $ f1 > f2)
+floatOp p Plus f1 f2  = PosExp p TUnit  (EFloat $ f1 + f2)
+floatOp p Minus f1 f2 = PosExp p TUnit  (EFloat $ f1 - f2)
+floatOp p Mult f1 f2  = PosExp p TUnit  (EFloat $ f1 * f2)
+floatOp p Lte f1 f2   = PosExp p TUnit  (EBool $ f1 <= f2)
+floatOp p Geq f1 f2   = PosExp p TUnit  (EBool $ f1 >= f2)
+floatOp p Eq f1 f2    = PosExp p TUnit  (EBool $ f1 == f2)
+floatOp p Lt f1 f2    = PosExp p TUnit  (EBool $ f1 < f2)
+floatOp p Gt f1 f2    = PosExp p TUnit  (EBool $ f1 > f2)
 floatOp p Div f1 f2
-  | f1 == 0 && f2 == 0 = PosExp p TUnknown  ENaN
+  | f1 == 0 && f2 == 0 = PosExp p TUnit  ENaN
   | f2 == 0 = posError p "Evaluation Error" ": divide by zero"
-  | otherwise = PosExp p TUnknown  (EFloat $ f1 / f2)
+  | otherwise = PosExp p TUnit  (EFloat $ f1 / f2)
 floatOp p Mod _ _ = posError p "Evaluation Error" ": cannot take the modulus of a float"
 
 {-# INLINE floatOp #-}
