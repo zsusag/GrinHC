@@ -1,1 +1,1 @@
-[let,hanoi,=,fix,f,n,->,if,n,==,1,then,1,else,2,*,(,f,(,n,-,1,),),+,1,in,hanoi,7]
+[let,hanoi,:,:,Int,->,Int,=,fix,f,(,n,:,:,Int,),:,:,Int,=>,if,n,==,1,then,1,else,2,*,(,f,(,n,-,1,),),+,1,in,hanoi,7]

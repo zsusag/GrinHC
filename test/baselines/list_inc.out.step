@@ -1,0 +1,3 @@
+GrinHC: Element which wasn't a list was cons'd onto a list
+CallStack (from HasCallStack):
+  error, called at src/Lang.hs:129:10 in GrinHC-0.1.0.0-BI3aA2YCmmF7GyY0ENz0st:Lang

@@ -1,0 +1,2 @@
+head []
+GrinHC: Evaluation Error at (line 1, column 6): cannot call head on an empty list

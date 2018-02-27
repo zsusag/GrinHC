@@ -7,8 +7,11 @@ Currently, GrinHC supports only the following grammar:
 e ::= n | (e) | e1 + e2 | e1 - e2 | e1 * e2 | e1 / e2
     | e1 % e2 | true | false | e1 <= e2 | e1 == e2
     | e1 >= e2 | e1 < e2 | e1 > e2 | if e1 then e2 else e3
-    | f | NaN | x | let x = e1 in e2 | lambda x -> e
-    | fix f x -> e | e1 e2
+    | f | NaN | x | let x :: t = e1 in e2 | lambda (x::t1)::t2 => e
+    | fix f (x::t1)::t2 => e | e1 e2 | () | (e1, e2) | fst e | snd e
+    | [] :: t | e1:e2 | head e | tail e | empty e
+
+t ::= Int | Bool | Float | Unit | t1 -> t2 | (t1, t2) | [t]
 ```
 where `n` is an integer literal, `x` is a variable identifier of the form
 ```
@@ -72,6 +75,17 @@ $ stack test
 ```
 
 ## Changelog
+### [assignment-04] --- 2018-02-28
+#### New Features
+* Added a typechecking phase which executes before evaluation occurs and will print an error message if there is a type error
+* Add `()` (unit) language feature to grammar
+* Add pairs to grammar
+* Add lists to grammar
+#### Changes to Existing Features
+* Expanded test suite to include tests for `()`, pairs, lists, and typechecking
+* Fixed bug which was required disambiguating parentheses with function application
+#### Known Bugs
+* None
 ### [assignment-04] --- 2018-02-21
 #### New Features
 * Can now define functions, both recursive and not, let-bindings, and function applications

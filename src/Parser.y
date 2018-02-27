@@ -11,13 +11,19 @@ import Error
 %tokentype { Token }
 %error { parseError }
 
+%expect 44
 %nonassoc '<=' '>=' '==' '<' '>'
 %left '+' '-'
 %left '*' '/' '%'
+%right ':'
+%left fst snd head tail empty
+%right '->'
 
 %token
      '('        { TokenLParen _}
      ')'        { TokenRParen _}
+     '['        { TokenLBracket _}
+     ']'        { TokenRBracket _}
      '+'        { TokenPlus _}
      '-'        { TokenSub _}
      '*'        { TokenMult _}
@@ -26,10 +32,13 @@ import Error
      '<'        { TokenLess _}
      '>'        { TokenGreat _}
      '%'        { TokenMod _}
+     ':'        { TokenColon _}
+     ','        { TokenComma _}
      '<='       { TokenLte _}
      '>='       { TokenGeq _}
      '=='       { TokenEq _}
      '->'       { TokenArr _}
+     '=>'       { TokenFat _}
      let        { TokenLet _}
      in         { TokenIn _}
      lambda     { TokenLambda _}
@@ -42,55 +51,87 @@ import Error
      bool       { TokenBool _ _}
      float      { TokenFloat _ _}
      lid        { TokenLid _ _}
-
+     uid        { TokenUid _ _}
+     fst        { TokenFst _}
+     snd        { TokenSnd _}
+     head       { TokenHead _}
+     tail       { TokenTail _}
+     empty      { TokenEmpty _}
 %%
 
 exp :: { Exp Pos }
-exp : if exp then exp else exp  { PosExp (tokenPosition $1) (EIf $2 $4 $6) }
-    | let lid '=' exp in exp    { PosExp (tokenPosition $1) (ELet (extractTokenContents $2) $4 $6) }
-    | fun                       { $1 }
-    | fapp                      { $1 }
+exp : exp '+' exp            { PosExp (tokenPosition $2) TUnit (EOp Plus $1 $3) }
+    | exp '-' exp            { PosExp (tokenPosition $2) TUnit (EOp Minus $1 $3) }
+    | exp '*' exp            { PosExp (tokenPosition $2) TUnit (EOp Mult $1 $3) }
+    | exp '/' exp            { PosExp (tokenPosition $2) TUnit (EOp Div $1 $3) }
+    | exp '<=' exp           { PosExp (tokenPosition $2) TUnit (EOp Lte $1 $3) }
+    | exp '>=' exp           { PosExp (tokenPosition $2) TUnit (EOp Geq $1 $3) }
+    | exp '==' exp           { PosExp (tokenPosition $2) TUnit (EOp Eq $1 $3) }
+    | exp '<' exp            { PosExp (tokenPosition $2) TUnit (EOp Lt $1 $3) }
+    | exp '>' exp            { PosExp (tokenPosition $2) TUnit (EOp Gt $1 $3) }
+    | exp '%' exp            { PosExp (tokenPosition $2) TUnit (EOp Mod $1 $3) }
+    | exp ':' exp            { PosExp (tokenPosition $2) TUnit (ECons $1 $3) }
+    | fst exp                { PosExp (tokenPosition $1) TUnit (EFst $2) }
+    | snd exp                { PosExp (tokenPosition $1) TUnit (ESnd $2) }
+    | head exp               { PosExp (tokenPosition $1) TUnit (EHead $2) }
+    | tail exp               { PosExp (tokenPosition $1) TUnit (ETail $2) }
+    | empty exp              { PosExp (tokenPosition $1) TUnit (EEmpty $2) }
+    | lexp                   { $1 }
+
+lexp : if exp then exp else exp              { PosExp (tokenPosition $1) TUnit (EIf $2 $4 $6) }
+     | let lid ':' ':' typ '=' exp in exp    { PosExp (tokenPosition $1) TUnit (ELet (extractVar $2 $5) $7 $9) }
+     | fun                                   { $1 }
+     | fapp                                  { $1 }
 
 fapp :: { Exp Pos }
-fapp : fapp exp1                { PosExp (extractExpPos $1) (EFunApp $1 $2) }
-     | exp1                     { $1 }
-
-exp1 :: { Exp Pos}
-exp1 : exp1 '+' exp1            { PosExp (tokenPosition $2) (EOp Plus $1 $3) }
-     | exp1 '-' exp1            { PosExp (tokenPosition $2) (EOp Minus $1 $3) }
-     | exp1 '*' exp1            { PosExp (tokenPosition $2) (EOp Mult $1 $3) }
-     | exp1 '/' exp1            { PosExp (tokenPosition $2) (EOp Div $1 $3) }
-     | exp1 '<=' exp1           { PosExp (tokenPosition $2) (EOp Lte $1 $3) }
-     | exp1 '>=' exp1           { PosExp (tokenPosition $2) (EOp Geq $1 $3) }
-     | exp1 '==' exp1           { PosExp (tokenPosition $2) (EOp Eq $1 $3) }
-     | exp1 '<' exp1            { PosExp (tokenPosition $2) (EOp Lt $1 $3) }
-     | exp1 '>' exp1            { PosExp (tokenPosition $2) (EOp Gt $1 $3) }
-     | exp1 '%' exp1            { PosExp (tokenPosition $2) (EOp Mod $1 $3) }
-     | '(' exp ')'              { $2 }
-     | val                      { $1 }
+fapp : fapp val                { PosExp (extractExpPos $1) TUnit (EFunApp $1 $2) }
+     | val                     { $1 }
 
 val :: { Exp Pos }
 val : int                       { extractTokenContents $1 }
     | float                     { extractTokenContents $1 }
     | bool                      { extractTokenContents $1 }
-    | lid                       { extractTokenContents $1 }
-    | NaN                       { PosExp (tokenPosition $1) ENaN}
+    | lid                       { extractVar $1 TUnit }
+    | NaN                       { PosExp (tokenPosition $1) TFloat ENaN}
+    | '[' ']' ':' ':' typ       { PosExp (tokenPosition $1) $5 ENil }
+    | '(' ')'                   { PosExp (tokenPosition $1) TUnit EUnit}
+    | '(' exp ',' exp ')'       { PosExp (tokenPosition $1) TUnit (EPair $2 $4) }
+    | '(' exp ')'               { $2 }
+
+typ :: { Typ }
+typ : typ '->' typ              { TArr $1 $3 }
+    | uid                       { extractTyp $1 }
+    | '[' typ ']'               { TList $2 }
+    | '(' typ ',' typ ')'       { TPair $2 $4 }
+    | '(' typ ')'               { $2 }
 
 fun :: { Exp Pos }
-fun : lambda lid '->' exp       { PosExp (tokenPosition $1) (EFun (extractTokenContents $2) $4) }
-    | fix lid lid '->' exp      { PosExp (tokenPosition $1) (ERec (extractTokenContents $2) (extractTokenContents $3) $5) }
+fun : lambda '(' lid ':' ':' typ ')' ':' ':' typ '=>' exp       { PosExp
+(tokenPosition $1) (TArr $6 $10) (EFun (extractVar $3 $6) $12) }
+    | fix lid '(' lid ':' ':' typ ')' ':' ':' typ '=>' exp      { PosExp (tokenPosition $1) (TArr $7 $11) (ERec (extractVar $2 (TArr $7 $11)) (extractVar $4 $7) $13) }
+
+
+
 {
 extractTokenContents :: Token -> Exp Pos
-extractTokenContents (TokenInt (AlexPn _ line col) n)   = PosExp (line,col) (EInt n)
-extractTokenContents (TokenFloat (AlexPn _ line col) f) = PosExp (line,col) (EFloat f)
-extractTokenContents (TokenBool (AlexPn _ line col) b)  = PosExp (line,col) (EBool b)
-extractTokenContents (TokenLid (AlexPn _ line col) s)   = PosExp (line,col) (ELid s)
+extractTokenContents (TokenInt (AlexPn _ line col) n)   = PosExp (line,col) TInt (EInt n)
+extractTokenContents (TokenFloat (AlexPn _ line col) f) = PosExp (line,col) TFloat (EFloat f)
+extractTokenContents (TokenBool (AlexPn _ line col) b)  = PosExp (line,col) TBool (EBool b)
 extractTokenContents _ = error "This should never happen. Weird..."
 
+extractVar :: Token -> Typ -> Exp Pos
+extractVar (TokenLid (AlexPn _ line col) s) t = PosExp (line,col) t (EVar s)
+
+extractTyp :: Token -> Typ
+extractTyp (TokenUid _ "Int") = TInt
+extractTyp (TokenUid _ "Bool") = TBool
+extractTyp (TokenUid _ "Float") = TFloat
+extractTyp (TokenUid (AlexPn _ line col) s) = posError (line,col) "Parse Error"(": undefined type " ++ show s)
+
 extractExpPos :: Exp Pos -> Pos
-extractExpPos (PosExp p _) = p
+extractExpPos (PosExp p _ _) = p
 
 parseError :: [Token] -> a
-parseError (t:ts) = posError (tokenPosition t) "Parse Error" ""
+parseError (t:ts) = posError (tokenPosition t) "Parse Error" (show ts)
 parseError [] = errorWithoutStackTrace "Parse Error: Reached EOF without closing expression"
 }

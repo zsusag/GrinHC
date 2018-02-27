@@ -1,1 +1,1 @@
-lambda x -> x + x
+lambda (x::Int)::Int => x + x

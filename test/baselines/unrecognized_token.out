@@ -1,1 +1,1 @@
-GrinHC: Evaluation Error at (line 1, column 1)Dangling identifier
+GrinHC: Type Error at (line 1, column 1): this has undefined type

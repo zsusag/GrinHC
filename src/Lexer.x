@@ -18,7 +18,8 @@ $lower = [a-z \_]
 
 $idchar  = [$lower $upper $digit \']
 
-@varid = $lower $idchar*
+@varlid  = $lower $idchar*
+@varuid = $upper $idchar*
 
 tokens :-
 
@@ -33,10 +34,15 @@ tokens :-
   \<                { tok (\p s -> TokenLess p) }
   \>                { tok (\p s -> TokenGreat p) }
   \%                { tok (\p s -> TokenMod p) }
+  \:                { tok (\p s -> TokenColon p) }
+  \,                { tok (\p s -> TokenComma p) }
+  \[                { tok (\p s -> TokenLBracket p) }
+  \]                { tok (\p s -> TokenRBracket p) }
   "<="              { tok (\p s -> TokenLte p) }
   ">="              { tok (\p s -> TokenGeq p) }
   "=="              { tok (\p s -> TokenEq p) }
   "->"              { tok (\p s -> TokenArr p) }
+  "=>"              { tok (\p s -> TokenFat p) }
   let               { tok (\p s -> TokenLet p) }
   in                { tok (\p s -> TokenIn p) }
   lambda            { tok (\p s -> TokenLambda p) }
@@ -46,10 +52,16 @@ tokens :-
   if                { tok (\p s -> TokenIf p) }
   then              { tok (\p s -> TokenThen p) }
   else              { tok (\p s -> TokenElse p) }
+  fst               { tok (\p s -> TokenFst p) }
+  snd               { tok (\p s -> TokenSnd p) }
+  head              { tok (\p s -> TokenHead p) }
+  tail              { tok (\p s -> TokenTail p) }
+  empty             { tok (\p s -> TokenEmpty p) }
   NaN               { tok (\p s -> TokenNaN p) }
   $digit+           { tok (\p s -> TokenInt p (read s)) }
-  $digit+\.$digit+  { (\p s -> TokenFloat p (read s)) }
-  @varid            { tok (\p s -> TokenLid p s) }
+  $digit+\.$digit+  { tok (\p s -> TokenFloat p (read s)) }
+  @varlid            { tok (\p s -> TokenLid p s) }
+  @varuid           { tok (\p s -> TokenUid p s) }
 {
 -- Some action helpers:
 tok f p s = f p s
@@ -81,6 +93,17 @@ data Token
   | TokenIn AlexPosn
   | TokenLambda AlexPosn
   | TokenFix AlexPosn
+  | TokenColon AlexPosn
+  | TokenUid AlexPosn !String
+  | TokenFat AlexPosn
+  | TokenComma AlexPosn
+  | TokenFst AlexPosn
+  | TokenSnd AlexPosn
+  | TokenLBracket AlexPosn
+  | TokenRBracket AlexPosn
+  | TokenHead AlexPosn
+  | TokenTail AlexPosn
+  | TokenEmpty AlexPosn
 
 instance Show Token where
   show (TokenLParen _) = "("
@@ -110,6 +133,17 @@ instance Show Token where
   show (TokenIn _)     = "in"
   show (TokenLambda _) = "lambda"
   show (TokenFix _)    = "fix"
+  show (TokenColon _)  = ":"
+  show (TokenUid _ s)  = s
+  show (TokenFat _)    = "=>"
+  show (TokenComma _)  = ","
+  show (TokenFst _)    = "fst"
+  show (TokenSnd _)    = "snd"
+  show (TokenLBracket _) = "["
+  show (TokenRBracket _) = "]"
+  show (TokenHead _)   = "head"
+  show (TokenTail _)   = "tail"
+  show (TokenEmpty _)  = "empty"
 
 tokenPosition :: Token -> Pos
 tokenPosition (TokenLParen (AlexPn _ line col))   = (line,col)
@@ -138,4 +172,15 @@ tokenPosition (TokenLet (AlexPn _ line col))      = (line,col)
 tokenPosition (TokenIn (AlexPn _ line col))       = (line,col)
 tokenPosition (TokenLambda (AlexPn _ line col))   = (line,col)
 tokenPosition (TokenFix (AlexPn _ line col))      = (line,col)
+tokenPosition (TokenColon (AlexPn _ line col))    = (line,col)
+tokenPosition (TokenUid (AlexPn _ line col) _)    = (line,col)
+tokenPosition (TokenFat (AlexPn _ line col))      = (line,col)
+tokenPosition (TokenComma (AlexPn _ line col))    = (line,col)
+tokenPosition (TokenFst (AlexPn _ line col))      = (line,col)
+tokenPosition (TokenSnd (AlexPn _ line col))      = (line,col)
+tokenPosition (TokenLBracket (AlexPn _ line col)) = (line,col)
+tokenPosition (TokenRBracket (AlexPn _ line col)) = (line,col)
+tokenPosition (TokenHead (AlexPn _ line col))     = (line,col)
+tokenPosition (TokenTail (AlexPn _ line col))     = (line,col)
+tokenPosition (TokenEmpty (AlexPn _ line col))    = (line,col)
 }
