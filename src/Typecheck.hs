@@ -74,4 +74,21 @@ typecheck' g (PosExp p _ (ESnd e)) = let t = typecheck' g e
   in case t of
   (TPair _ t2) -> t2
   _ -> posError p "Type Error" (": expected type of " ++ show e ++ " to be a pair type but was actually " ++ show t)
+typecheck' _ (PosExp _ t ENil) = TList t
+typecheck' g (PosExp p _ (ECons e1 e2)) = let te1 = typecheck' g e1
+                                              te2 = typecheck' g e2
+  in case te2 of
+       (TList t) -> if t == te1
+         then te2
+         else posError p "Type Error" ": cons'd element is not of the same type as the rest of the list"
+       _ -> posError p "Type Error" (": " ++ show e2 ++ " does not have a list type")
+typecheck' g (PosExp p _ (EHead e)) = case typecheck' g e of
+  (TList t) -> t
+  _ -> posError p "Type Error" ": cannot take the head of a non-list"
+typecheck' g (PosExp p _ (ETail e)) = case typecheck' g e of
+  (TList t) -> TList t
+  _ -> posError p "Type Error" ": cannot take the tail of a non-list"
+typecheck' g (PosExp p _ (EEmpty e)) = case typecheck' g e of
+  (TList _) -> TBool
+  _ -> posError p "Type Error" ": cannot check to see if a list is empty on a non-list"
 typecheck' _ (PosExp p _ _) = posError p "Type Error" ": malformed expression reached"

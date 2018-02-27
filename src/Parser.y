@@ -11,16 +11,19 @@ import Error
 %tokentype { Token }
 %error { parseError }
 
-%expect 40
+%expect 44
 %nonassoc '<=' '>=' '==' '<' '>'
 %left '+' '-'
 %left '*' '/' '%'
-%left fst snd
+%right ':'
+%left fst snd head tail empty
 %right '->'
 
 %token
      '('        { TokenLParen _}
      ')'        { TokenRParen _}
+     '['        { TokenLBracket _}
+     ']'        { TokenRBracket _}
      '+'        { TokenPlus _}
      '-'        { TokenSub _}
      '*'        { TokenMult _}
@@ -51,6 +54,9 @@ import Error
      uid        { TokenUid _ _}
      fst        { TokenFst _}
      snd        { TokenSnd _}
+     head       { TokenHead _}
+     tail       { TokenTail _}
+     empty      { TokenEmpty _}
 %%
 
 exp :: { Exp Pos }
@@ -64,8 +70,12 @@ exp : exp '+' exp            { PosExp (tokenPosition $2) TUnit (EOp Plus $1 $3) 
     | exp '<' exp            { PosExp (tokenPosition $2) TUnit (EOp Lt $1 $3) }
     | exp '>' exp            { PosExp (tokenPosition $2) TUnit (EOp Gt $1 $3) }
     | exp '%' exp            { PosExp (tokenPosition $2) TUnit (EOp Mod $1 $3) }
+    | exp ':' exp            { PosExp (tokenPosition $2) TUnit (ECons $1 $3) }
     | fst exp                { PosExp (tokenPosition $1) TUnit (EFst $2) }
     | snd exp                { PosExp (tokenPosition $1) TUnit (ESnd $2) }
+    | head exp               { PosExp (tokenPosition $1) TUnit (EHead $2) }
+    | tail exp               { PosExp (tokenPosition $1) TUnit (ETail $2) }
+    | empty exp              { PosExp (tokenPosition $1) TUnit (EEmpty $2) }
     | lexp                   { $1 }
 
 lexp : if exp then exp else exp              { PosExp (tokenPosition $1) TUnit (EIf $2 $4 $6) }
@@ -83,6 +93,7 @@ val : int                       { extractTokenContents $1 }
     | bool                      { extractTokenContents $1 }
     | lid                       { extractVar $1 TUnit }
     | NaN                       { PosExp (tokenPosition $1) TFloat ENaN}
+    | '[' ']' ':' ':' typ       { PosExp (tokenPosition $1) $5 ENil }
     | '(' ')'                   { PosExp (tokenPosition $1) TUnit EUnit}
     | '(' exp ',' exp ')'       { PosExp (tokenPosition $1) TUnit (EPair $2 $4) }
     | '(' exp ')'               { $2 }
@@ -90,6 +101,7 @@ val : int                       { extractTokenContents $1 }
 typ :: { Typ }
 typ : typ '->' typ              { TArr $1 $3 }
     | uid                       { extractTyp $1 }
+    | '[' typ ']'               { TList $2 }
     | '(' typ ',' typ ')'       { TPair $2 $4 }
     | '(' typ ')'               { $2 }
 

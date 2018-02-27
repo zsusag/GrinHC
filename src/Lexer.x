@@ -36,6 +36,8 @@ tokens :-
   \%                { tok (\p s -> TokenMod p) }
   \:                { tok (\p s -> TokenColon p) }
   \,                { tok (\p s -> TokenComma p) }
+  \[                { tok (\p s -> TokenLBracket p) }
+  \]                { tok (\p s -> TokenRBracket p) }
   "<="              { tok (\p s -> TokenLte p) }
   ">="              { tok (\p s -> TokenGeq p) }
   "=="              { tok (\p s -> TokenEq p) }
@@ -52,6 +54,9 @@ tokens :-
   else              { tok (\p s -> TokenElse p) }
   fst               { tok (\p s -> TokenFst p) }
   snd               { tok (\p s -> TokenSnd p) }
+  head              { tok (\p s -> TokenHead p) }
+  tail              { tok (\p s -> TokenTail p) }
+  empty             { tok (\p s -> TokenEmpty p) }
   NaN               { tok (\p s -> TokenNaN p) }
   $digit+           { tok (\p s -> TokenInt p (read s)) }
   $digit+\.$digit+  { tok (\p s -> TokenFloat p (read s)) }
@@ -94,6 +99,11 @@ data Token
   | TokenComma AlexPosn
   | TokenFst AlexPosn
   | TokenSnd AlexPosn
+  | TokenLBracket AlexPosn
+  | TokenRBracket AlexPosn
+  | TokenHead AlexPosn
+  | TokenTail AlexPosn
+  | TokenEmpty AlexPosn
 
 instance Show Token where
   show (TokenLParen _) = "("
@@ -129,6 +139,11 @@ instance Show Token where
   show (TokenComma _)  = ","
   show (TokenFst _)    = "fst"
   show (TokenSnd _)    = "snd"
+  show (TokenLBracket _) = "["
+  show (TokenRBracket _) = "]"
+  show (TokenHead _)   = "head"
+  show (TokenTail _)   = "tail"
+  show (TokenEmpty _)  = "empty"
 
 tokenPosition :: Token -> Pos
 tokenPosition (TokenLParen (AlexPn _ line col))   = (line,col)
@@ -163,4 +178,9 @@ tokenPosition (TokenFat (AlexPn _ line col))      = (line,col)
 tokenPosition (TokenComma (AlexPn _ line col))    = (line,col)
 tokenPosition (TokenFst (AlexPn _ line col))      = (line,col)
 tokenPosition (TokenSnd (AlexPn _ line col))      = (line,col)
+tokenPosition (TokenLBracket (AlexPn _ line col)) = (line,col)
+tokenPosition (TokenRBracket (AlexPn _ line col)) = (line,col)
+tokenPosition (TokenHead (AlexPn _ line col))     = (line,col)
+tokenPosition (TokenTail (AlexPn _ line col))     = (line,col)
+tokenPosition (TokenEmpty (AlexPn _ line col))    = (line,col)
 }

@@ -5,7 +5,7 @@ import Error
 
 evaluate :: Exp Pos -> Bool -> IO ()
 evaluate e b
- | isValue e = print e
+ | isValue e = print $ expToValue e
  | b = do
      print e
      evaluate (step e) b
@@ -71,6 +71,29 @@ step (PosExp p t (ESnd e)) =  case e of
         then e2
         else PosExp p t $ EFst $ PosExp p' t' $ EPair e1 $ step e2
       _ -> posError p "Evaluation Error" ": cannot call 'snd' on a non-pair"
+step e@(PosExp _ _ ENil) = e
+step e@(PosExp p t (ECons e1 e2))
+  | isValue e1 && isValue e2 = e
+  | isValue e1 = PosExp p t $ ECons e1 $ step e2
+  | otherwise = PosExp p t $ ECons (step e1) e2
+step (PosExp p t (EHead e)) = if isValue e
+  then case e of
+  (PosExp _ _ (ECons e1 _)) -> e1
+  (PosExp p' _ ENil) -> posError p' "Evaluation Error" ": cannot call head on an empty list"
+  _ -> posError p "Evaluation Error" ": cannot call head on a non-list"
+  else PosExp p t $ EHead $ step e
+step (PosExp p t (ETail e)) = if isValue e
+  then case e of
+  (PosExp _ _ (ECons _ e2)) -> e2
+  (PosExp p' _ ENil) -> posError p' "Evaluation Error" ": cannot call head on an empty list"
+  _ -> posError p "Evaluation Error" ": cannot call head on a non-list"
+  else PosExp p t $ EHead $ step e
+step (PosExp p t (EEmpty e)) = if isValue e
+  then case e of
+  (PosExp _ _ ENil) -> PosExp p TBool $ EBool True
+  (PosExp _ _ (ECons _ _)) -> PosExp p TBool $ EBool False
+  _ -> posError p "Evaluation Error" ": cannot call empty on a non-list"
+  else PosExp p t $ EEmpty $ step e
 step e = e
 
 subst :: Exp_ Pos -> Exp_ Pos -> Exp Pos -> Exp Pos
@@ -96,6 +119,10 @@ subst val var (PosExp p t e) = if e == var
   (EPair e1 e2) -> PosExp p t $ EPair (subst val var e1) (subst val var e2)
   (EFst e') -> PosExp p t $ EFst $ subst val var e'
   (ESnd e') -> PosExp p t $ ESnd $ subst val var e'
+  (ECons e1 e2) -> PosExp p t $ ECons (subst val var e1) (subst val var e2)
+  (EHead e') -> PosExp p t $ EHead $ subst val var e'
+  (ETail e') -> PosExp p t $ ETail $ subst val var e'
+  (EEmpty e') -> PosExp p t $ EEmpty $ subst val var e'
   _ -> PosExp p t e
 
 extractExp :: Exp Pos -> Exp_ Pos
@@ -107,6 +134,8 @@ extractExp (PosExp _ _ e@ERec{}) = e
 extractExp (PosExp _ _ ENaN) = ENaN
 extractExp (PosExp _ _ EUnit) = EUnit
 extractExp (PosExp _ _ e@(EPair _ _)) = e
+extractExp (PosExp _ _ ENil) = ENil
+extractExp (PosExp _ _ e@(ECons _ _)) = e
 extractExp _ = error "This should never happen..."
 
 expToValue :: Exp Pos -> Value
@@ -118,6 +147,8 @@ expToValue (PosExp _ _ (ERec (PosExp _ _ (EVar f)) (PosExp _ _ (EVar s)) e)) = V
 expToValue (PosExp _ _ ENaN) = VNaN
 expToValue (PosExp _ _ EUnit) = VUnit
 expToValue (PosExp _ _ (EPair e1 e2)) = VPair (expToValue e1) (expToValue e2)
+expToValue e@(PosExp _ _ ENil) = VList e
+expToValue e@(PosExp _ _ (ECons _ _)) = VList e
 expToValue (PosExp p _ _ ) = posError p "Evaluation Error" ": expression is not a value"
 
 isValue :: Exp Pos -> Bool
@@ -129,6 +160,8 @@ isValue (PosExp _ _ ERec{}) = True
 isValue (PosExp _ _ ENaN) = True
 isValue (PosExp _ _ EUnit) = True
 isValue (PosExp _ _ (EPair e1 e2)) = isValue e1 && isValue e2
+isValue (PosExp _ _ ENil) = True
+isValue (PosExp _ _ (ECons e1 e2)) = isValue e1 && isValue e2
 isValue _ = False
 
 intOp :: Pos -> Op -> Int -> Int -> Exp Pos

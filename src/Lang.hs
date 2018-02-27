@@ -15,6 +15,7 @@ data Typ = TInt
   | TArr !Typ !Typ
   | TUnit
   | TPair !Typ !Typ
+  | TList !Typ
   deriving(Generic)
 
 instance NFData Typ
@@ -27,6 +28,7 @@ data Value = VInt {-# UNPACK #-} !Int
   | VNaN
   | VUnit
   | VPair !Value !Value
+  | VList !(Exp Pos)
   deriving (Generic, Eq)
 
 -- Credit: Andrew Mack for helping me scraping my boilerplate
@@ -60,6 +62,11 @@ data Exp_ t = EInt !Int
   | EPair !(Exp t) !(Exp t)
   | EFst !(Exp t)
   | ESnd !(Exp t)
+  | ENil
+  | ECons !(Exp t) !(Exp t)
+  | EHead !(Exp t)
+  | ETail !(Exp t)
+  | EEmpty !(Exp t)
   deriving (Generic, Eq)
 
 instance Show Typ where
@@ -69,6 +76,7 @@ instance Show Typ where
   show (TArr t1 t2) = show t1 ++ " -> " ++ show t2
   show TUnit = "Unit"
   show (TPair t1 t2) = "(" ++ show t1 ++ ", " ++ show t2 ++ ")"
+  show (TList t) = "[" ++ show t ++ "]"
 
 instance Show Value where
   show (VInt n)      = show n
@@ -80,6 +88,7 @@ instance Show Value where
   show VNaN          = "NaN"
   show VUnit         = "()"
   show (VPair v1 v2) = "(" ++ show v1 ++ ", " ++ show v2 ++ ")"
+  show (VList v)     = "[" ++ show v ++ "]"
 
 instance Show Op where
   show Plus  = "+"
@@ -113,6 +122,14 @@ instance Show (Exp_ t) where
   show (EPair e1 e2) = "(" ++ show e1 ++ ", " ++ show e2 ++ ")"
   show (EFst e) = "fst " ++ show e
   show (ESnd e) = "snd " ++ show e
+  show ENil = "[]"
+  show (ECons e1 e2) = case e2 of
+    (PosExp _ _ ENil) -> show e1
+    (PosExp _ _ (ECons _ _)) -> show e1 ++ ", " ++ show e2
+    _ -> error "Element which wasn't a list was cons'd onto a list"
+  show (EHead e) = "head " ++ show e
+  show (ETail e) = "tail " ++ show e
+  show (EEmpty e) = "empty " ++ show e
 
 instance Eq Typ where
   TInt == TInt = True
@@ -121,5 +138,6 @@ instance Eq Typ where
   (TArr t1 t2) == (TArr t1' t2') = (t1 == t1' && t2 == t2') || (t1 == t2' && t2 == t1')
   TUnit == TUnit = True
   (TPair t1 t2) == (TPair t1' t2') = t1 == t1' && t2 == t2'
+  (TList t1) == (TList t2) = t1 == t2
   _ == _ = False
     
