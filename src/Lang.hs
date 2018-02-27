@@ -14,6 +14,7 @@ data Typ = TInt
   | TFloat
   | TArr !Typ !Typ
   | TUnit
+  | TPair !Typ !Typ
   deriving(Generic)
 
 instance NFData Typ
@@ -25,6 +26,7 @@ data Value = VInt {-# UNPACK #-} !Int
   | VRec !String !String !(Exp Pos)
   | VNaN
   | VUnit
+  | VPair !Value !Value
   deriving (Generic, Eq)
 
 -- Credit: Andrew Mack for helping me scraping my boilerplate
@@ -55,6 +57,9 @@ data Exp_ t = EInt !Int
   | ELet !(Exp t) !(Exp t) !(Exp t)
   | EFunApp !(Exp t) !(Exp t)
   | EUnit
+  | EPair !(Exp t) !(Exp t)
+  | EFst !(Exp t)
+  | ESnd !(Exp t)
   deriving (Generic, Eq)
 
 instance Show Typ where
@@ -63,6 +68,7 @@ instance Show Typ where
   show TBool = "Bool"
   show (TArr t1 t2) = show t1 ++ " -> " ++ show t2
   show TUnit = "Unit"
+  show (TPair t1 t2) = "(" ++ show t1 ++ ", " ++ show t2 ++ ")"
 
 instance Show Value where
   show (VInt n)      = show n
@@ -72,7 +78,8 @@ instance Show Value where
   show (VRec f l v)  = "fix " ++ f ++ " " ++ l ++ " -> " ++ show v
   show (VFloat f)    = show f
   show VNaN          = "NaN"
-  show VUnit          = "()"
+  show VUnit         = "()"
+  show (VPair v1 v2) = "(" ++ show v1 ++ ", " ++ show v2 ++ ")"
 
 instance Show Op where
   show Plus  = "+"
@@ -103,6 +110,9 @@ instance Show (Exp_ t) where
   show (EVar s)   = s
   show ENaN = "NaN"
   show EUnit = "()"
+  show (EPair e1 e2) = "(" ++ show e1 ++ ", " ++ show e2 ++ ")"
+  show (EFst e) = "fst " ++ show e
+  show (ESnd e) = "snd " ++ show e
 
 instance Eq Typ where
   TInt == TInt = True
@@ -110,5 +120,6 @@ instance Eq Typ where
   TBool == TBool = True
   (TArr t1 t2) == (TArr t1' t2') = (t1 == t1' && t2 == t2') || (t1 == t2' && t2 == t1')
   TUnit == TUnit = True
+  (TPair t1 t2) == (TPair t1' t2') = t1 == t1' && t2 == t2'
   _ == _ = False
     

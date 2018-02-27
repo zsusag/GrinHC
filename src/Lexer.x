@@ -35,6 +35,7 @@ tokens :-
   \>                { tok (\p s -> TokenGreat p) }
   \%                { tok (\p s -> TokenMod p) }
   \:                { tok (\p s -> TokenColon p) }
+  \,                { tok (\p s -> TokenComma p) }
   "<="              { tok (\p s -> TokenLte p) }
   ">="              { tok (\p s -> TokenGeq p) }
   "=="              { tok (\p s -> TokenEq p) }
@@ -49,6 +50,8 @@ tokens :-
   if                { tok (\p s -> TokenIf p) }
   then              { tok (\p s -> TokenThen p) }
   else              { tok (\p s -> TokenElse p) }
+  fst               { tok (\p s -> TokenFst p) }
+  snd               { tok (\p s -> TokenSnd p) }
   NaN               { tok (\p s -> TokenNaN p) }
   $digit+           { tok (\p s -> TokenInt p (read s)) }
   $digit+\.$digit+  { tok (\p s -> TokenFloat p (read s)) }
@@ -88,6 +91,9 @@ data Token
   | TokenColon AlexPosn
   | TokenUid AlexPosn !String
   | TokenFat AlexPosn
+  | TokenComma AlexPosn
+  | TokenFst AlexPosn
+  | TokenSnd AlexPosn
 
 instance Show Token where
   show (TokenLParen _) = "("
@@ -120,6 +126,9 @@ instance Show Token where
   show (TokenColon _)  = ":"
   show (TokenUid _ s)  = s
   show (TokenFat _)    = "=>"
+  show (TokenComma _)  = ","
+  show (TokenFst _)    = "fst"
+  show (TokenSnd _)    = "snd"
 
 tokenPosition :: Token -> Pos
 tokenPosition (TokenLParen (AlexPn _ line col))   = (line,col)
@@ -151,4 +160,7 @@ tokenPosition (TokenFix (AlexPn _ line col))      = (line,col)
 tokenPosition (TokenColon (AlexPn _ line col))    = (line,col)
 tokenPosition (TokenUid (AlexPn _ line col) _)    = (line,col)
 tokenPosition (TokenFat (AlexPn _ line col))      = (line,col)
+tokenPosition (TokenComma (AlexPn _ line col))    = (line,col)
+tokenPosition (TokenFst (AlexPn _ line col))      = (line,col)
+tokenPosition (TokenSnd (AlexPn _ line col))      = (line,col)
 }

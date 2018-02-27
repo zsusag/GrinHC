@@ -63,4 +63,15 @@ typecheck' g (PosExp p _ (EFunApp e1 e2)) = let te1 = typecheck' g e1
          then t2
          else posError p "Type Error" (": expected type of " ++ show e2 ++ " to be " ++ show t1 ++ " but was actually " ++ show te2)
        _ -> posError p "Type Error" (": expected " ++ show e1 ++ " to be a function with an arrow type but actually had type " ++ show te1)
+typecheck' g (PosExp _ _ (EPair e1 e2)) = let te1 = typecheck' g e1
+                                              te2 = typecheck' g e2
+  in TPair te1 te2
+typecheck' g (PosExp p _ (EFst e)) = let t = typecheck' g e
+  in case t of
+  (TPair t1 _) -> t1
+  _ -> posError p "Type Error" (": expected type of " ++ show e ++ " to be a pair type but was actually " ++ show t)
+typecheck' g (PosExp p _ (ESnd e)) = let t = typecheck' g e
+  in case t of
+  (TPair _ t2) -> t2
+  _ -> posError p "Type Error" (": expected type of " ++ show e ++ " to be a pair type but was actually " ++ show t)
 typecheck' _ (PosExp p _ _) = posError p "Type Error" ": malformed expression reached"

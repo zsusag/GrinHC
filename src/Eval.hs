@@ -57,6 +57,20 @@ step (PosExp p t (EFunApp e1 e2))
         _ -> posError p "Evaluation Error" ": expression does not evaluate to a function"
   | isValue e1 = PosExp p t (EFunApp e1 (step e2))
   | otherwise = PosExp p t (EFunApp (step e1) e2)
+step (PosExp p t e@(EPair e1 e2))
+  | isValue e1 && isValue e2 = PosExp p t e
+  | isValue e1 = PosExp p t $ EPair e1 $ step e2
+  | otherwise = PosExp p t $ EPair (step e1) e2
+step (PosExp p t (EFst e)) =  case e of
+      (PosExp p' t' (EPair e1 e2)) -> if isValue e1
+        then e1
+        else PosExp p t $ EFst $ PosExp p' t' $ EPair (step e1) e2
+      _ -> posError p "Evaluation Error" ": cannot call 'fst' on a non-pair"
+step (PosExp p t (ESnd e)) =  case e of
+      (PosExp p' t' (EPair e1 e2)) -> if isValue e2
+        then e2
+        else PosExp p t $ EFst $ PosExp p' t' $ EPair e1 $ step e2
+      _ -> posError p "Evaluation Error" ": cannot call 'snd' on a non-pair"
 step e = e
 
 subst :: Exp_ Pos -> Exp_ Pos -> Exp Pos -> Exp Pos
@@ -79,6 +93,9 @@ subst val var (PosExp p t e) = if e == var
       else PosExp p t' $ ELet (subst val var (PosExp p' t' e1)) (subst val var e2) (subst val var e3)
   (EFunApp e1 e2) ->
     PosExp p t $ EFunApp (subst val var e1) (subst val var e2)
+  (EPair e1 e2) -> PosExp p t $ EPair (subst val var e1) (subst val var e2)
+  (EFst e') -> PosExp p t $ EFst $ subst val var e'
+  (ESnd e') -> PosExp p t $ ESnd $ subst val var e'
   _ -> PosExp p t e
 
 extractExp :: Exp Pos -> Exp_ Pos
@@ -88,6 +105,8 @@ extractExp (PosExp _ _ e@(EBool _)) = e
 extractExp (PosExp _ _ e@(EFun _ _)) = e
 extractExp (PosExp _ _ e@ERec{}) = e
 extractExp (PosExp _ _ ENaN) = ENaN
+extractExp (PosExp _ _ EUnit) = EUnit
+extractExp (PosExp _ _ e@(EPair _ _)) = e
 extractExp _ = error "This should never happen..."
 
 expToValue :: Exp Pos -> Value
@@ -97,6 +116,8 @@ expToValue (PosExp _ _ (EBool b)) = VBool b
 expToValue (PosExp _ _ (EFun (PosExp _ _ (EVar s)) e)) = VFun s e
 expToValue (PosExp _ _ (ERec (PosExp _ _ (EVar f)) (PosExp _ _ (EVar s)) e)) = VRec f s e
 expToValue (PosExp _ _ ENaN) = VNaN
+expToValue (PosExp _ _ EUnit) = VUnit
+expToValue (PosExp _ _ (EPair e1 e2)) = VPair (expToValue e1) (expToValue e2)
 expToValue (PosExp p _ _ ) = posError p "Evaluation Error" ": expression is not a value"
 
 isValue :: Exp Pos -> Bool
@@ -107,6 +128,7 @@ isValue (PosExp _ _ (EFun _ _)) = True
 isValue (PosExp _ _ ERec{}) = True
 isValue (PosExp _ _ ENaN) = True
 isValue (PosExp _ _ EUnit) = True
+isValue (PosExp _ _ (EPair e1 e2)) = isValue e1 && isValue e2
 isValue _ = False
 
 intOp :: Pos -> Op -> Int -> Int -> Exp Pos
