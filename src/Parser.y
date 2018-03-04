@@ -15,10 +15,9 @@ import Error
 %nonassoc '<=' '>=' '==' '<' '>'
 %left '+' '-'
 %left '*' '/' '%'
-%left ';'
-%right ':'
+%right ':' 
 %left fst snd head tail empty ref '!'
-%right '->' ':='
+%right '->' ':=' ';'
 
 %token
      '('        { TokenLParen _}

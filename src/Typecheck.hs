@@ -91,4 +91,17 @@ typecheck' g (PosExp p _ (ETail e)) = case typecheck' g e of
 typecheck' g (PosExp p _ (EEmpty e)) = case typecheck' g e of
   (TList _) -> TBool
   _ -> posError p "Type Error" ": cannot check to see if a list is empty on a non-list"
+typecheck' g (PosExp _ _ (ERef e)) = TRef $ typecheck' g e
+typecheck' g (PosExp p _ (ESet e1 e2)) = let te1 = typecheck' g e1
+                                             te2 = typecheck' g e2
+  in case te1 of
+  (TRef t) -> if te1 == t
+              then TUnit
+              else posError p "Type Error" (": expected type of " ++ show e2 ++ " to be " ++ show t ++ " but was actually " ++ show te2)
+  _ -> posError p "Type Error" ": cannot assign value to non-ref variable"
+typecheck' g (PosExp p _ (EBang e)) = case typecheck' g e of
+  (TRef t) -> t
+  _ -> posError p "Type Error" ": cannot extract value from a non-ref variable"
+typecheck' g (PosExp _ _ (ESeq _ e2)) = typecheck' g e2
+typecheck' g (PosExp _ _ (EPtr e)) = TRef $ typecheck' g e
 typecheck' _ (PosExp p _ _) = posError p "Type Error" ": malformed expression reached"
