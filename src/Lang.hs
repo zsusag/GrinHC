@@ -8,6 +8,7 @@ import qualified Data.Map.Strict as Map
 type Pos = (Int,Int)
 
 type Context = Map.Map String Typ
+type Env = (Int, Map.Map Int (Exp Pos))
 
 data Typ = TInt
   | TBool
@@ -30,7 +31,7 @@ data Value = VInt {-# UNPACK #-} !Int
   | VUnit
   | VPair !Value !Value
   | VList !(Exp Pos)
-  | VPtr !(Exp Pos)
+  | VPtr !Int
   deriving (Generic, Eq)
 
 -- Credit: Andrew Mack for helping me scraping my boilerplate
@@ -70,7 +71,7 @@ data Exp_ t = EInt !Int
   | ETail !(Exp t)
   | EEmpty !(Exp t)
   | ERef !(Exp t)
-  | EPtr !(Exp t)
+  | EPtr !Int
   | ESet !(Exp t) !(Exp t)
   | EBang !(Exp t)
   | ESeq !(Exp t) !(Exp t)

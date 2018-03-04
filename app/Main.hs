@@ -65,7 +65,7 @@ main = do
      let ast = Parser.parse tokenStream
      printAndExit printAST ast handle
      typ <- typecheck Map.empty ast
-     typ `deepseq` evaluate ast printSteps
+     typ `deepseq` evaluate ast printSteps (0,Map.empty)
      hClose handle
        where
          tryOpen filePath = case filePath of
