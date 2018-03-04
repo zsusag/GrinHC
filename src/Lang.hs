@@ -16,6 +16,7 @@ data Typ = TInt
   | TUnit
   | TPair !Typ !Typ
   | TList !Typ
+  | TRef !Typ
   deriving(Generic)
 
 instance NFData Typ
@@ -29,6 +30,7 @@ data Value = VInt {-# UNPACK #-} !Int
   | VUnit
   | VPair !Value !Value
   | VList !(Exp Pos)
+  | VPtr !(Exp Pos)
   deriving (Generic, Eq)
 
 -- Credit: Andrew Mack for helping me scraping my boilerplate
@@ -67,6 +69,11 @@ data Exp_ t = EInt !Int
   | EHead !(Exp t)
   | ETail !(Exp t)
   | EEmpty !(Exp t)
+  | ERef !(Exp t)
+  | EPtr !(Exp t)
+  | ESet !(Exp t) !(Exp t)
+  | EBang !(Exp t)
+  | ESeq !(Exp t) !(Exp t)
   deriving (Generic, Eq)
 
 instance Show Typ where
@@ -77,6 +84,7 @@ instance Show Typ where
   show TUnit = "Unit"
   show (TPair t1 t2) = "(" ++ show t1 ++ ", " ++ show t2 ++ ")"
   show (TList t) = "[" ++ show t ++ "]"
+  show (TRef t) = "<" ++ show t ++ ">"
 
 instance Show Value where
   show (VInt n)      = show n
@@ -89,6 +97,7 @@ instance Show Value where
   show VUnit         = "()"
   show (VPair v1 v2) = "(" ++ show v1 ++ ", " ++ show v2 ++ ")"
   show (VList v)     = "[" ++ show v ++ "]"
+  show (VPtr v)      = "Ptr(" ++ show v ++ ")"
 
 instance Show Op where
   show Plus  = "+"
@@ -130,6 +139,11 @@ instance Show (Exp_ t) where
   show (EHead e) = "head " ++ show e
   show (ETail e) = "tail " ++ show e
   show (EEmpty e) = "empty " ++ show e
+  show (ERef e) = "ref " ++ show e
+  show (EPtr e) = "ptr(" ++ show e ++ ")"
+  show (ESet e1 e2) = show e1 ++ " := " ++ show e2
+  show (EBang e) = "!" ++ show e
+  show (ESeq e1 e2) = show e1 ++ " ; " ++ show e2
 
 instance Eq Typ where
   TInt == TInt = True
@@ -139,5 +153,6 @@ instance Eq Typ where
   TUnit == TUnit = True
   (TPair t1 t2) == (TPair t1' t2') = t1 == t1' && t2 == t2'
   (TList t1) == (TList t2) = t1 == t2
+  (TRef t1) == (TRef t2) = t1 == t2
   _ == _ = False
     

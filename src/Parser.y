@@ -11,13 +11,14 @@ import Error
 %tokentype { Token }
 %error { parseError }
 
-%expect 44
+%expect 52
 %nonassoc '<=' '>=' '==' '<' '>'
 %left '+' '-'
 %left '*' '/' '%'
+%left ';'
 %right ':'
-%left fst snd head tail empty
-%right '->'
+%left fst snd head tail empty ref '!'
+%right '->' ':='
 
 %token
      '('        { TokenLParen _}
@@ -33,12 +34,16 @@ import Error
      '>'        { TokenGreat _}
      '%'        { TokenMod _}
      ':'        { TokenColon _}
+     ';'        { TokenSemi _}
      ','        { TokenComma _}
+     '!'        { TokenBang _}
      '<='       { TokenLte _}
      '>='       { TokenGeq _}
      '=='       { TokenEq _}
      '->'       { TokenArr _}
      '=>'       { TokenFat _}
+     ':='       { TokenAssign _}
+     ref        { TokenRef _}
      let        { TokenLet _}
      in         { TokenIn _}
      lambda     { TokenLambda _}
@@ -71,11 +76,15 @@ exp : exp '+' exp            { PosExp (tokenPosition $2) TUnit (EOp Plus $1 $3) 
     | exp '>' exp            { PosExp (tokenPosition $2) TUnit (EOp Gt $1 $3) }
     | exp '%' exp            { PosExp (tokenPosition $2) TUnit (EOp Mod $1 $3) }
     | exp ':' exp            { PosExp (tokenPosition $2) TUnit (ECons $1 $3) }
+    | exp ':=' exp           { PosExp (tokenPosition $2) TUnit (ESet $1 $3) }
+    | exp ';' exp            { PosExp (tokenPosition $2) TUnit (ESeq $1 $3) }
     | fst exp                { PosExp (tokenPosition $1) TUnit (EFst $2) }
     | snd exp                { PosExp (tokenPosition $1) TUnit (ESnd $2) }
     | head exp               { PosExp (tokenPosition $1) TUnit (EHead $2) }
     | tail exp               { PosExp (tokenPosition $1) TUnit (ETail $2) }
     | empty exp              { PosExp (tokenPosition $1) TUnit (EEmpty $2) }
+    | '!' exp                { PosExp (tokenPosition $1) TUnit (EBang $2) }
+    | ref exp                { PosExp (tokenPosition $1) TUnit (ERef $2) }
     | lexp                   { $1 }
 
 lexp : if exp then exp else exp              { PosExp (tokenPosition $1) TUnit (EIf $2 $4 $6) }
@@ -104,13 +113,12 @@ typ : typ '->' typ              { TArr $1 $3 }
     | '[' typ ']'               { TList $2 }
     | '(' typ ',' typ ')'       { TPair $2 $4 }
     | '(' typ ')'               { $2 }
+    | '<' typ '>'               { TRef $2 }
 
 fun :: { Exp Pos }
 fun : lambda '(' lid ':' ':' typ ')' ':' ':' typ '=>' exp       { PosExp
 (tokenPosition $1) (TArr $6 $10) (EFun (extractVar $3 $6) $12) }
     | fix lid '(' lid ':' ':' typ ')' ':' ':' typ '=>' exp      { PosExp (tokenPosition $1) (TArr $7 $11) (ERec (extractVar $2 (TArr $7 $11)) (extractVar $4 $7) $13) }
-
-
 
 {
 extractTokenContents :: Token -> Exp Pos
