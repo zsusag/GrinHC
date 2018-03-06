@@ -1,3 +1,1 @@
-GrinHC: Element which wasn't a list was cons'd onto a list
-CallStack (from HasCallStack):
-  error, called at src/Lang.hs:139:10 in GrinHC-0.1.0.0-BI3aA2YCmmF7GyY0ENz0st:Lang
+let inc = fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs in inc 4, 5, 2, 1

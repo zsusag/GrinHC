@@ -62,6 +62,9 @@ tokens :-
   empty             { tok (\p s -> TokenEmpty p) }
   NaN               { tok (\p s -> TokenNaN p) }
   ref               { tok (\p s -> TokenRef p) }
+  while             { tok (\p s -> TokenWhile p) }
+  do                { tok (\p s -> TokenDo p) }
+  end               { tok (\p s -> TokenEnd p) }
   $digit+           { tok (\p s -> TokenInt p (read s)) }
   $digit+\.$digit+  { tok (\p s -> TokenFloat p (read s)) }
   @varlid           { tok (\p s -> TokenLid p s) }
@@ -112,6 +115,9 @@ data Token
   | TokenRef AlexPosn
   | TokenBang AlexPosn
   | TokenSemi AlexPosn
+  | TokenWhile AlexPosn
+  | TokenDo AlexPosn
+  | TokenEnd AlexPosn
 
 instance Show Token where
   show (TokenLParen _) = "("
@@ -156,6 +162,9 @@ instance Show Token where
   show (TokenBang _)   = "!"
   show (TokenRef _)    = "ref"
   show (TokenSemi _)   = ";"
+  show (TokenWhile _)  = "while"
+  show (TokenDo _)     = "do"
+  show (TokenEnd _)    = "end"
 
 tokenPosition :: Token -> Pos
 tokenPosition (TokenLParen (AlexPn _ line col))   = (line,col)
@@ -199,4 +208,7 @@ tokenPosition (TokenAssign (AlexPn _ line col))   = (line,col)
 tokenPosition (TokenBang (AlexPn _ line col))     = (line,col)
 tokenPosition (TokenRef (AlexPn _ line col))      = (line,col)
 tokenPosition (TokenSemi (AlexPn _ line col))     = (line,col)
+tokenPosition (TokenWhile (AlexPn _ line col))    = (line,col)
+tokenPosition (TokenDo (AlexPn _ line col))       = (line,col)
+tokenPosition (TokenEnd (AlexPn _ line col))      = (line,col)
 }

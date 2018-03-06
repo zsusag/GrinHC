@@ -61,6 +61,9 @@ import Error
      head       { TokenHead _}
      tail       { TokenTail _}
      empty      { TokenEmpty _}
+     while      { TokenWhile _}
+     do         { TokenDo _}
+     end        { TokenEnd _}
 %%
 
 exp :: { Exp Pos }
@@ -88,6 +91,7 @@ exp : exp '+' exp            { PosExp (tokenPosition $2) TUnit (EOp Plus $1 $3) 
 
 lexp : if exp then exp else exp              { PosExp (tokenPosition $1) TUnit (EIf $2 $4 $6) }
      | let lid ':' ':' typ '=' exp in exp    { PosExp (tokenPosition $1) TUnit (ELet (extractVar $2 $5) $7 $9) }
+     | while exp do exp end                  { PosExp (tokenPosition $1) TUnit (EWhile $2 $4) }
      | fun                                   { $1 }
      | fapp                                  { $1 }
 

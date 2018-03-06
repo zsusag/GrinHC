@@ -75,6 +75,7 @@ data Exp_ t = EInt !Int
   | ESet !(Exp t) !(Exp t)
   | EBang !(Exp t)
   | ESeq !(Exp t) !(Exp t)
+  | EWhile !(Exp t) !(Exp t)
   deriving (Generic, Eq)
 
 instance Show Typ where
@@ -145,6 +146,7 @@ instance Show (Exp_ t) where
   show (ESet e1 e2) = "(" ++ show e1 ++ " := " ++ show e2 ++ ")"
   show (EBang e) = "!" ++ show e
   show (ESeq e1 e2) = "(" ++ show e1 ++ " ; " ++ show e2 ++ ")"
+  show (EWhile e1 e2) = "while " ++ show e1 ++ " do " ++ show e2 ++ " end"
 
 instance Eq Typ where
   TInt == TInt = True

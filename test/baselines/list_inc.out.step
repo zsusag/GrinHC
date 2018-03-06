@@ -1,3 +1,29 @@
-GrinHC: Element which wasn't a list was cons'd onto a list
-CallStack (from HasCallStack):
-  error, called at src/Lang.hs:139:10 in GrinHC-0.1.0.0-BI3aA2YCmmF7GyY0ENz0st:Lang
+let inc = fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs in inc 4, 5, 2, 1
+fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs 4, 5, 2, 1
+if empty 4, 5, 2, 1 then  [] else (head 4, 5, 2, 1 + 1), fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs tail 4, 5, 2, 1
+if false then  [] else (head 4, 5, 2, 1 + 1), fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs tail 4, 5, 2, 1
+if false then  [] else (4 + 1), fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs tail 4, 5, 2, 1
+if false then  [] else 5, fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs tail 4, 5, 2, 1
+if false then  [] else 5, fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs 5, 2, 1
+if false then  [] else 5, if empty 5, 2, 1 then  [] else (head 5, 2, 1 + 1), fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs tail 5, 2, 1
+if false then  [] else 5, if false then  [] else (head 5, 2, 1 + 1), fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs tail 5, 2, 1
+if false then  [] else 5, if false then  [] else (5 + 1), fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs tail 5, 2, 1
+if false then  [] else 5, if false then  [] else 6, fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs tail 5, 2, 1
+if false then  [] else 5, if false then  [] else 6, fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs 2, 1
+if false then  [] else 5, if false then  [] else 6, if empty 2, 1 then  [] else (head 2, 1 + 1), fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs tail 2, 1
+if false then  [] else 5, if false then  [] else 6, if false then  [] else (head 2, 1 + 1), fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs tail 2, 1
+if false then  [] else 5, if false then  [] else 6, if false then  [] else (2 + 1), fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs tail 2, 1
+if false then  [] else 5, if false then  [] else 6, if false then  [] else 3, fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs tail 2, 1
+if false then  [] else 5, if false then  [] else 6, if false then  [] else 3, fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs 1
+if false then  [] else 5, if false then  [] else 6, if false then  [] else 3, if empty 1 then  [] else (head 1 + 1), fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs tail 1
+if false then  [] else 5, if false then  [] else 6, if false then  [] else 3, if false then  [] else (head 1 + 1), fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs tail 1
+if false then  [] else 5, if false then  [] else 6, if false then  [] else 3, if false then  [] else (1 + 1), fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs tail 1
+if false then  [] else 5, if false then  [] else 6, if false then  [] else 3, if false then  [] else 2, fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs tail 1
+if false then  [] else 5, if false then  [] else 6, if false then  [] else 3, if false then  [] else 2, fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs []
+if false then  [] else 5, if false then  [] else 6, if false then  [] else 3, if false then  [] else 2, if empty [] then  [] else (head [] + 1), fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs tail []
+if false then  [] else 5, if false then  [] else 6, if false then  [] else 3, if false then  [] else 2, if true then  [] else (head [] + 1), fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs tail []
+if false then  [] else 5, if false then  [] else 6, if false then  [] else 3, if false then  [] else 2
+if false then  [] else 5, if false then  [] else 6, if false then  [] else 3, 2
+if false then  [] else 5, if false then  [] else 6, 3, 2
+if false then  [] else 5, 6, 3, 2
+[5, 6, 3, 2]
