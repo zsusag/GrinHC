@@ -136,8 +136,7 @@ instance Show (Exp_ t) where
   show ENil = "[]"
   show (ECons e1 e2) = case e2 of
     (PosExp _ _ ENil) -> show e1
-    (PosExp _ _ (ECons _ _)) -> show e1 ++ ", " ++ show e2
-    _ -> error "Element which wasn't a list was cons'd onto a list"
+    _ -> show e1 ++ ", " ++ show e2
   show (EHead e) = "head " ++ show e
   show (ETail e) = "tail " ++ show e
   show (EEmpty e) = "empty " ++ show e
