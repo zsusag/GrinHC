@@ -14,10 +14,10 @@ import Error
 %expect 52
 %nonassoc '<=' '>=' '==' '<' '>'
 %left '+' '-'
-%left '*' '/' '%'
+%left '*' '/' '%' ':='
 %right ':' 
 %left fst snd head tail empty ref '!'
-%right '->' ':=' ';'
+%right '->' ';'
 
 %token
      '('        { TokenLParen _}

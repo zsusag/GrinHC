@@ -156,4 +156,3 @@ instance Eq Typ where
   (TList t1) == (TList t2) = t1 == t2
   (TRef t1) == (TRef t2) = t1 == t2
   _ == _ = False
-    
