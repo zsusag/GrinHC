@@ -1,0 +1,1 @@
+let f = lambda x -> lambda y -> let tmp = !x in ((x := !y) ; (y := tmp)) in let a = ref 5 in let b = ref 3 in (f a b ; !a)
