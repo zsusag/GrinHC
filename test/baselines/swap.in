@@ -1,0 +1,8 @@
+let f :: <Int> -> <Int> -> () =
+  lambda (x::<Int>) :: <Int> -> () =>
+    lambda (y::<Int>) :: () =>
+      let tmp :: Int = !x in
+        (x := !y) ; (y := tmp)
+in let a :: <Int> = ref 5 in
+   let b :: <Int> = ref 3 in
+   (f a b) ; !a
