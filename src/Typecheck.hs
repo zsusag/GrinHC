@@ -103,4 +103,7 @@ typecheck' g (PosExp p _ (EBang e)) = case typecheck' g e of
   (TRef t) -> t
   _ -> posError p "Type Error" ": cannot extract value from a non-ref variable"
 typecheck' g (PosExp _ _ (ESeq _ e2)) = typecheck' g e2
+typecheck' g (PosExp p _ (EWhile e1 _)) = case typecheck' g e1 of
+  TBool -> TUnit
+  _ -> posError p "Type Error" ": expected a boolean value in guard of while loop"
 typecheck' _ (PosExp p _ _) = posError p "Type Error" ": malformed expression reached"
