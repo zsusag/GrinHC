@@ -75,8 +75,8 @@ exp : exp '+' exp            { PosExp (tokenPosition $2) TUnit (EOp Plus $1 $3) 
     | exp '>' exp            { PosExp (tokenPosition $2) TUnit (EOp Gt $1 $3) }
     | exp '%' exp            { PosExp (tokenPosition $2) TUnit (EOp Mod $1 $3) }
     | exp ':' exp            { PosExp (tokenPosition $2) TUnit (ECons $1 $3) }
-    | exp ':=' exp           { PosExp (tokenPosition $2) TUnit (ESet $1 $3) }
     | exp ';' exp            { PosExp (tokenPosition $2) TUnit (ESeq $1 $3) }
+    | exp ':=' exp           { PosExp (tokenPosition $2) TUnit (ESet $1 $3) }
     | fst exp                { PosExp (tokenPosition $1) TUnit (EFst $2) }
     | snd exp                { PosExp (tokenPosition $1) TUnit (ESnd $2) }
     | head exp               { PosExp (tokenPosition $1) TUnit (EHead $2) }
@@ -113,6 +113,7 @@ typ : typ '->' typ              { TArr $1 $3 }
     | '(' typ ',' typ ')'       { TPair $2 $4 }
     | '(' typ ')'               { $2 }
     | '<' typ '>'               { TRef $2 }
+    | '(' ')'                   { TUnit }
 
 fun :: { Exp Pos }
 fun : lambda '(' lid ':' ':' typ ')' ':' ':' typ '=>' exp       { PosExp

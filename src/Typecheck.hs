@@ -95,7 +95,7 @@ typecheck' g (PosExp _ _ (ERef e)) = TRef $ typecheck' g e
 typecheck' g (PosExp p _ (ESet e1 e2)) = let te1 = typecheck' g e1
                                              te2 = typecheck' g e2
   in case te1 of
-  (TRef t) -> if te1 == t
+  (TRef t) -> if te2 == t
               then TUnit
               else posError p "Type Error" (": expected type of " ++ show e2 ++ " to be " ++ show t ++ " but was actually " ++ show te2)
   _ -> posError p "Type Error" ": cannot assign value to non-ref variable"
