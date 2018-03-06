@@ -142,9 +142,9 @@ instance Show (Exp_ t) where
   show (EEmpty e) = "empty " ++ show e
   show (ERef e) = "ref " ++ show e
   show (EPtr e) = "ptr(" ++ show e ++ ")"
-  show (ESet e1 e2) = "(" ++ show e1 ++ " := " ++ show e2 ++ ")"
+  show (ESet e1 e2) = show e1 ++ " := " ++ show e2
   show (EBang e) = "!" ++ show e
-  show (ESeq e1 e2) = "(" ++ show e1 ++ " ; " ++ show e2 ++ ")"
+  show (ESeq e1 e2) = show e1 ++ " ; " ++ show e2
   show (EWhile e1 e2) = "while " ++ show e1 ++ " do " ++ show e2 ++ " end"
 
 instance Eq Typ where
