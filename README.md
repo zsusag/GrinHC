@@ -1,4 +1,4 @@
-# GrinHC --- Zachary J. Susag
+# GrinHC &emdash; Zachary J. Susag
 A compiler written in [Haskell](https://www.haskell.org) for the CSC-312 course at Grinnell College during the Spring 2018 semester.
 
 ## Supported Grammar
@@ -10,8 +10,9 @@ e ::= n | (e) | e1 + e2 | e1 - e2 | e1 * e2 | e1 / e2
     | f | NaN | x | let x :: t = e1 in e2 | lambda (x::t1)::t2 => e
     | fix f (x::t1)::t2 => e | e1 e2 | () | (e1, e2) | fst e | snd e
     | [] :: t | e1:e2 | head e | tail e | empty e
+    | ref e | e1 := e2 | !e | e1 ; e2 | while e1 do e2 end
 
-t ::= Int | Bool | Float | Unit | t1 -> t2 | (t1, t2) | [t]
+t ::= Int | Bool | Float | Unit | t1 -> t2 | (t1, t2) | [t] | <t>
 ```
 where `n` is an integer literal, `x` is a variable identifier of the form
 ```
@@ -75,7 +76,16 @@ $ stack test
 ```
 
 ## Changelog
-### [assignment-05] --- 2018-02-28
+### [assignment-06] &emdash; 2018-03-07
+#### New Features
+* Added the concept of an environment to keep track of `ref`s (aka state eww).
+* Augmented the grammar with while loops, sequencing (`e1 ; e2`), stateful assignment (`e1 := e2`) and dereferencing (`!e`)
+#### Changes to Existing Features
+* Added a new type, `<t>` which signifies that a variable is a `ref` and thus is stateful
+* Expanded test suite to test `ref`s, sequencing, and while loops.
+#### Known Bugs
+* None
+### [assignment-05] &emdash; 2018-02-28
 #### New Features
 * Added a typechecking phase which executes before evaluation occurs and will print an error message if there is a type error
 * Add `()` (unit) language feature to grammar
@@ -86,7 +96,7 @@ $ stack test
 * Fixed bug which was required disambiguating parentheses with function application
 #### Known Bugs
 * None
-### [assignment-04] --- 2018-02-21
+### [assignment-04] &emdash; 2018-02-21
 #### New Features
 * Can now define functions, both recursive and not, let-bindings, and function applications
 * Added `--step` command line argument to print out all of the evaluation steps
@@ -97,7 +107,7 @@ $ stack test
     * `stack test` will also now test whether the steps taken during evaluation are correct
 #### Known Bugs
 * Given an expression of the form `5 * f 3` where `f` is a function the parser currently builds the following AST, `(5 * f) 3` instead of the correct AST, `5 * (f 3)`. As a result, failure to include disambiguating parentheses will result in an evaluation error.
-### [assignment-03] --- 2018-02-12
+### [assignment-03] &emdash; 2018-02-12
 #### New Features
 * Error messages new report position information (line,column)
 * `generate_baselines.sh` script added to, well, generate baselines automatically
@@ -112,7 +122,7 @@ $ stack test
     * `stack test` will now test lexing and parsing components of GrinHC as well as evaluation
 #### Known Bugs
 * None
-### [assignment-02] --- 2018-02-06
+### [assignment-02] &emdash; 2018-02-06
 #### New Features
 * Add ability lex and parse basic S-Expressions in a LISP style syntax
 * Ability to read in file with code return evaluated code
@@ -124,7 +134,7 @@ $ stack test
 * Remove old testing suite which tested old features
 #### Known Bugs
 * None
-### [assignment-01] --- 2018-01-29
+### [assignment-01] &emdash; 2018-01-29
 #### New Features
 * Created the project
 * Parse command line arguments and spit them back to `stdout`
