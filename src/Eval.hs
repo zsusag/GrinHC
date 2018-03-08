@@ -141,14 +141,7 @@ step (PosExp p t (ESeq e1 e2),env)
   | isValue e1 = step (e2,env)
   | otherwise = let (e1',env') = step (e1,env)
                 in (PosExp p t (ESeq e1' e2),env')
-step (PosExp p t (EWhile e1 e2),env) = let (b,env') = evalCond (e1,env)
-  in if b
-     then (PosExp p t (ESeq e2 (PosExp p t (EWhile e1 e2))),env')
-     else (PosExp p t EUnit,env')
-  where evalCond :: (Exp Pos, Env) -> (Bool,Env)
-        evalCond (e,env') = case e of
-          (PosExp _ _ (EBool b)) -> (b,env')
-          _ -> evalCond $ step (e,env')
+step (PosExp p t e@(EWhile e1 e2), env) = (PosExp p t (EIf e1 (PosExp p t (ESeq e2 (PosExp p t e))) (PosExp p t EUnit)),env)
 step e = e
 
 subst :: Exp_ Pos -> Exp_ Pos -> Exp Pos -> Exp Pos

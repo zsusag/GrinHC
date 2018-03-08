@@ -1,2 +1,3 @@
 while false do (5 * 21) end
+if false then  (5 * 21) ; while false do (5 * 21) end else ()
 ()
