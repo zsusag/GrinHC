@@ -11,7 +11,7 @@ import Error
 %tokentype { Token }
 %error { parseError }
 
-%expect 52
+%expect 91
 %nonassoc '<=' '>=' '==' '<' '>'
 %right ';'
 %left ':='
@@ -93,6 +93,7 @@ exp : exp '+' exp            { PosExp (tokenPosition $2) TUnit (EOp Plus $1 $3) 
 
 lexp : if exp then exp else exp              { PosExp (tokenPosition $1) TUnit (EIf $2 $4 $6) }
      | let lid ':' ':' typ '=' exp in exp    { PosExp (tokenPosition $1) TUnit (ELet (extractVar $2 $5) $7 $9) }
+     | let lid '=' exp in exp                { PosExp (tokenPosition $1) TUnit (ELet (extractVar $2 TUnit) $4 $6) }
      | while exp do exp end                  { PosExp (tokenPosition $1) TUnit (EWhile $2 $4) }
      | fun                                   { $1 }
      | fapp                                  { $1 }
@@ -122,10 +123,10 @@ typ : typ '->' typ              { TArr $1 $3 }
     | '(' ')'                   { TUnit }
 
 fun :: { Exp Pos }
-fun : lambda '(' lid ':' ':' typ ')' ':' ':' typ '=>' exp       { PosExp
-(tokenPosition $1) (TArr $6 $10) (EFun (extractVar $3 $6) $12) }
+fun : lambda '(' lid ':' ':' typ ')' ':' ':' typ '=>' exp       { PosExp (tokenPosition $1) (TArr $6 $10) (EFun (extractVar $3 $6) $12) }
+    | lambda lid '=>' exp                                       { PosExp (tokenPosition $1) TUnit (EFun (extractVar $2 TUnit) $4) }
     | fix lid '(' lid ':' ':' typ ')' ':' ':' typ '=>' exp      { PosExp (tokenPosition $1) (TArr $7 $11) (ERec (extractVar $2 (TArr $7 $11)) (extractVar $4 $7) $13) }
-
+    | fix lid lid '=>' exp                                      { PosExp (tokenPosition $1) TUnit (ERec (extractVar $2 TUnit) (extractVar $3 TUnit) $5) }
 {
 extractTokenContents :: Token -> Exp Pos
 extractTokenContents (TokenInt (AlexPn _ line col) n)   = PosExp (line,col) TInt (EInt n)
