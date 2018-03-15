@@ -1,5 +1,5 @@
-let sum = lambda p -> (fst p + snd p) in sum (5, 21)
-lambda p -> (fst p + snd p) (5, 21)
+let sum = lambda p -> (fst p + snd p) in (lambda sum (5, 21))
+(lambda lambda p -> (fst p + snd p) (5, 21))
 (fst (5, 21) + snd (5, 21))
 (5 + snd (5, 21))
 (5 + 21)

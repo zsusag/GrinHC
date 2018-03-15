@@ -1,1 +1,1 @@
-let setFst = lambda p -> lambda n -> (n, snd p) in setFst (20, 5) 2
+let setFst = lambda p -> lambda n -> (n, snd p) in (lambda (lambda setFst (20, 5)) 2)

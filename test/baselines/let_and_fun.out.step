@@ -1,4 +1,4 @@
-let x = lambda y -> (y * y) in x 2
-lambda y -> (y * y) 2
+let x = lambda y -> (y * y) in (lambda x 2)
+(lambda lambda y -> (y * y) 2)
 (2 * 2)
 4

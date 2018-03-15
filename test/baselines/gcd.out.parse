@@ -1,1 +1,1 @@
-let gcd = fix f x -> fix g y -> if (y == 0) then  x else f y (x % y) in gcd 510 40
+let gcd = fix f x -> fix g y -> if (y == 0) then  x else (lambda (lambda f y) (x % y)) in (lambda (lambda gcd 510) 40)

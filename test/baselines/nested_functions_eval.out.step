@@ -1,5 +1,5 @@
-lambda x -> lambda y -> ((x + y) + x) 5 2
-lambda y -> ((5 + y) + 5) 2
+(lambda (lambda lambda x -> lambda y -> ((x + y) + x) 5) 2)
+(lambda lambda y -> ((5 + y) + 5) 2)
 ((5 + 2) + 5)
 (7 + 5)
 12

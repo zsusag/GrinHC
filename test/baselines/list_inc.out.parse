@@ -1,1 +1,1 @@
-let inc = fix f xs -> if empty xs then  [] else (head xs + 1), f tail xs in inc 4, 5, 2, 1
+let inc = fix f xs -> if empty xs then  [] else (head xs + 1), (lambda f tail xs) in (lambda inc 4, 5, 2, 1)

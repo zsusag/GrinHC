@@ -1,1 +1,1 @@
-let sum = fix f xs -> if empty xs then  0 else (head xs + f tail xs) in sum 5, 4, 3, 2, 1
+let sum = fix f xs -> if empty xs then  0 else (head xs + (lambda f tail xs)) in (lambda sum 5, 4, 3, 2, 1)

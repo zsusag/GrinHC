@@ -1,1 +1,1 @@
-let union = lambda p1 -> lambda p2 -> ((fst p1, fst p2), (snd p1, snd p2)) in union (5, 20) (2, 1)
+let union = lambda p1 -> lambda p2 -> ((fst p1, fst p2), (snd p1, snd p2)) in (lambda (lambda union (5, 20)) (2, 1))
