@@ -40,6 +40,8 @@ tokens :-
   \[                { tok (\p s -> TokenLBracket p) }
   \]                { tok (\p s -> TokenRBracket p) }
   \!                { tok (\p s -> TokenBang p) }
+  \|                { tok (\p s -> TokenPipe p) }
+  \_                { tok (\p s -> TokenWild p) }
   "<="              { tok (\p s -> TokenLte p) }
   ">="              { tok (\p s -> TokenGeq p) }
   "=="              { tok (\p s -> TokenEq p) }
@@ -65,6 +67,9 @@ tokens :-
   while             { tok (\p s -> TokenWhile p) }
   do                { tok (\p s -> TokenDo p) }
   end               { tok (\p s -> TokenEnd p) }
+  data              { tok (\p s -> TokenData p) }
+  case              { tok (\p s -> TokenCase p) }
+  of                { tok (\p s -> TokenOf p) }
   $digit+           { tok (\p s -> TokenInt p (read s)) }
   $digit+\.$digit+  { tok (\p s -> TokenFloat p (read s)) }
   @varlid           { tok (\p s -> TokenLid p s) }
@@ -118,6 +123,11 @@ data Token
   | TokenWhile AlexPosn
   | TokenDo AlexPosn
   | TokenEnd AlexPosn
+  | TokenData AlexPosn
+  | TokenPipe AlexPosn
+  | TokenWild AlexPosn
+  | TokenCase AlexPosn
+  | TokenOf AlexPosn
 
 instance Show Token where
   show (TokenLParen _) = "("
@@ -165,6 +175,11 @@ instance Show Token where
   show (TokenWhile _)  = "while"
   show (TokenDo _)     = "do"
   show (TokenEnd _)    = "end"
+  show (TokenData _)   = "data"
+  show (TokenPipe _)   = "|"
+  show (TokenWild _)   = "_"
+  show (TokenCase _)   = "case"
+  show (TokenOf _)     = "of"
 
 tokenPosition :: Token -> Pos
 tokenPosition (TokenLParen (AlexPn _ line col))   = (line,col)
@@ -211,4 +226,9 @@ tokenPosition (TokenSemi (AlexPn _ line col))     = (line,col)
 tokenPosition (TokenWhile (AlexPn _ line col))    = (line,col)
 tokenPosition (TokenDo (AlexPn _ line col))       = (line,col)
 tokenPosition (TokenEnd (AlexPn _ line col))      = (line,col)
+tokenPosition (TokenData (AlexPn _ line col))     = (line,col)
+tokenPosition (TokenPipe (AlexPn _ line col))     = (line,col)
+tokenPosition (TokenWild (AlexPn _ line col))     = (line,col)
+tokenPosition (TokenCase (AlexPn _ line col))     = (line,col)
+tokenPosition (TokenOf (AlexPn _ line col))       = (line,col)
 }

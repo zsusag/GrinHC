@@ -2,6 +2,7 @@ module Eval where
 
 import Lang
 import Error
+import Debug.Trace
 import qualified Data.Map.Strict as Map
 
 evaluate :: Exp Pos -> Bool -> Env -> IO ()

@@ -9,6 +9,7 @@ import Control.Monad
 import System.IO
 import System.Directory
 import System.Exit
+import Debug.Trace
 
 import Lexer
 import Parser
@@ -62,10 +63,10 @@ main = do
      else do 
      let tokenStream = alexScanTokens contents
      printAndExit printTS tokenStream handle
-     let ast = Parser.parse tokenStream
-     printAndExit printAST ast handle
-     typ <- typecheck Map.empty ast
-     typ `deepseq` evaluate ast printSteps (0,Map.empty)
+     let prog@(decl,exp) = Parser.parse tokenStream
+     printAndExit printAST exp handle
+     typ <- typecheck prog
+     typ `deepseq` evaluate exp printSteps (0,Map.empty)
      hClose handle
        where
          tryOpen filePath = case filePath of

@@ -4,9 +4,13 @@ import qualified Data.Map.Strict as Map
 
 import Error
 import Lang
+import Debug.Trace
 
-typecheck :: Context -> Exp Pos -> IO Typ
-typecheck g e = return $ typecheck' g e
+typecheck :: Prog -> IO Typ
+typecheck (d,e) = return $ typecheck' (processDecls d) e
+  where processDecls :: [Decl] -> Context
+        processDecls [] = Map.empty
+        processDecls (DData _ cs:xs) = Map.union (Map.fromList cs) $ processDecls xs
 
 typecheck' :: Context -> Exp Pos -> Typ
 typecheck' _ (PosExp _ _ (EInt _)) = TInt
@@ -106,4 +110,101 @@ typecheck' g (PosExp _ _ (ESeq _ e2)) = typecheck' g e2
 typecheck' g (PosExp p _ (EWhile e1 _)) = case typecheck' g e1 of
   TBool -> TUnit
   _ -> posError p "Type Error" ": expected a boolean value in guard of while loop"
+typecheck' g (PosExp p _ (ECtor i es)) = let t = constructCtorTyp es
+  in case Map.lookup i g of
+       (Just t') -> if trace (show t ++ " / " ++ show t') $ t == t'
+                    then case t' of
+                           (TArr _ t''@(TData _)) -> t''
+                           (TData _) -> t'
+                           _ -> posError p "Type Error" ": invalid constructor type"
+                    else posError p "Type Error" ": constructor invocation is not of the correct type"
+       Nothing -> posError p "Type Error" ": constructor type unknown"
+  where constructCtorTyp :: [Exp Pos] -> Typ
+        constructCtorTyp = foldl (\t1 t2 -> TArr t1 $ typecheck' g t2)
+          (case Map.lookup i g of
+             (Just (TData s)) -> TData s
+             (Just (TArr _ (TData s))) -> TData s
+             Nothing -> posError p "Type Error" ": constructor unknown"
+             _ -> posError p "Type Error" ": type of constructor is not given")
+typecheck' g (PosExp p _ (EMatch e bs)) = let t = typecheckPattern g (typecheck' g e) bs TUnknown p
+  in case t of
+    TUnknown -> posError p "Type Error" ": no patterns present within pattern matching"
+    _ -> t
 typecheck' _ (PosExp p _ _) = posError p "Type Error" ": malformed expression reached"
+
+typecheckPattern :: Context -> Typ -> [Branch Pos] -> Typ -> Pos -> Typ
+typecheckPattern g t ((p,e):bs) prev pos = case t of
+  TPair t1 t2 -> case p of
+    PPair (PVar id1, PVar id2) -> let g' = Map.insert id1 t1 $ Map.insert id2 t2 g
+                                      t' = typecheck' g' e
+      in case prev of
+      TUnknown -> typecheckPattern g t bs t' pos
+      _ | prev == t' -> typecheckPattern g t bs t' pos
+        | otherwise  -> posError pos "Type Error" ": expressions within pattern match do not all evaluate to same type"
+    PWildCard -> let t' = typecheck' g e
+      in case prev of
+      TUnknown -> typecheckPattern g t bs t' pos
+      _ | prev == t' -> typecheckPattern g t bs t' pos
+        | otherwise  -> posError pos "Type Error" ": expressions within pattern match do not all evaluate to same type"
+    _ -> posError pos "Type Error" ": pattern is not a pair type"
+  TList t'    -> case p of
+    PList (PVar id1, PVar id2) -> let g' = Map.insert id1 t' $ Map.insert id2 t g
+                                      t'' = typecheck' g' e
+      in case prev of
+      TUnknown -> typecheckPattern g t bs t'' pos
+      _ | prev == t'' -> typecheckPattern g t bs t'' pos
+        | otherwise -> posError pos "Type Error" ": expressions within pattern match do not evaluate to same type"
+    PWildCard -> let t'' = typecheck' g e
+      in case prev of
+      TUnknown -> typecheckPattern g t bs t'' pos
+      _ | prev == t'' -> typecheckPattern g t bs t'' pos
+        | otherwise  -> posError pos "Type Error" ": expressions within pattern match do not all evaluate to same type"
+    _ -> posError pos "Type Error" ": pattern is not a list type"
+  TData _    -> case p of
+    PCtor id' ps -> case Map.lookup id' g of
+      (Just t'@(TData _))
+        | t /= t' ->
+          posError pos "Type Error"
+          (": constructor is not of type " ++ show t)
+        | not $ null ps ->
+          posError pos "Type Error"
+          ": constructor invocation includes variables where there are none"
+        | otherwise ->
+          let t'' = typecheck' g e in
+            case prev of
+              TUnknown -> typecheckPattern g t bs t'' pos
+              _ | prev == t'' -> typecheckPattern g t bs t'' pos
+                | otherwise ->
+                  posError pos "Type Error"
+                  ": expressions within pattern match do not all evaluate to the same type"
+
+      (Just (TArr t1 t'@(TData _)))
+        | t /= t' -> 
+          posError pos "Type Error" (": constructor is not of type " ++ show t)
+        | t == t' && null ps ->
+          posError pos "Type Error" ": constructor is only partially satisfied"
+        | otherwise ->
+          let f :: Pattern -> String
+              f x = case x of
+                (PVar s) -> s
+                PWildCard -> "_"
+                _ -> posError pos "Type Error" ": constructor invocation has non-id variable"
+              ts = arrToList t1
+              lt = zip (map f ps) ts
+          in if length lt /= length ts
+             then posError pos "Type Error" ": constructor invocation is partially applied"
+             else let g' = Map.union g $ Map.fromList $ filter (\(s,_) -> s /= "_") lt
+                      t'' = typecheck' g' e
+          in case prev of
+            TUnknown -> typecheckPattern g' t bs t'' pos
+            _ | prev == t'' -> typecheckPattern g' t bs t'' pos
+              | otherwise -> posError pos "Type Error" ": expressions within pattern match do not all evaluate to same type"
+      _ -> posError pos "Type Error" ": unknown constructor"
+    PWildCard -> let t' = typecheck' g e
+      in case prev of
+      TUnknown -> typecheckPattern g t bs t' pos
+      _ | prev == t' -> typecheckPattern g t bs t' pos
+        | otherwise  -> posError pos "Type Error" ": expressions within pattern match do not all evaluate to same type"
+    _ -> posError pos "Type Error" ": pattern is not a ADT type"
+  _ -> posError pos "Type Error" ": cannot pattern match on a non-pair. list, or ADT expression"
+typecheckPattern _ _ [] t _ = t  

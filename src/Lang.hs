@@ -5,10 +5,17 @@ import GHC.Generics (Generic)
 import Control.DeepSeq (NFData)
 import qualified Data.Map.Strict as Map
 
+type Prog = ([Decl], Exp Pos)
+
+type Id = String
 type Pos = (Int,Int)
 
-type Context = Map.Map String Typ
+type Context = Map.Map Id Typ
 type Env = (Int, Map.Map Int (Exp Pos))
+
+type Ctor = (Id, Typ)
+
+data Decl = DData Id [Ctor]
 
 data Typ = TInt
   | TBool
@@ -18,15 +25,22 @@ data Typ = TInt
   | TPair !Typ !Typ
   | TList !Typ
   | TRef !Typ
+  | TData !Id
+  | TUnknown
   deriving(Generic)
 
 instance NFData Typ
 
+-- NOTE: Reversed
+arrToList :: Typ -> [Typ]
+arrToList (TArr t1 t2) = t2 : arrToList t1
+arrToList t = [t]
+
 data Value = VInt {-# UNPACK #-} !Int
   | VBool !Bool
   | VFloat {-# UNPACK #-} !Float
-  | VFun !String !(Exp Pos)
-  | VRec !String !String !(Exp Pos)
+  | VFun !Id !(Exp Pos)
+  | VRec !Id !Id !(Exp Pos)
   | VNaN
   | VUnit
   | VPair !Value !Value
@@ -53,7 +67,7 @@ data Exp t = PosExp t Typ (Exp_ t)
 data Exp_ t = EInt !Int
   | EFloat !Float
   | EBool !Bool
-  | EVar !String
+  | EVar !Id
   | EFun !(Exp t) !(Exp t)
   | ERec !(Exp t) !(Exp t) !(Exp t)
   | ENaN
@@ -76,17 +90,30 @@ data Exp_ t = EInt !Int
   | EBang !(Exp t)
   | ESeq !(Exp t) !(Exp t)
   | EWhile !(Exp t) !(Exp t)
+  | EMatch !(Exp t) ![Branch t]
+  | ECtor !Id ![Exp t]
   deriving (Generic, Eq)
+
+type Branch t = (Pattern, Exp t)
+
+data Pattern = PWildCard
+  | PVar !Id
+  | PPair !(Pattern, Pattern)
+  | PList !(Pattern, Pattern)
+  | PCtor !Id ![Pattern]
+  deriving (Generic, Eq, Show)
 
 instance Show Typ where
   show TInt = "Int"
   show TFloat = "Float"
   show TBool = "Bool"
-  show (TArr t1 t2) = show t1 ++ " -> " ++ show t2
+  show (TArr t1 t2) = "(TArr " ++ show t1 ++ " -> " ++ show t2 ++ ")"
   show TUnit = "Unit"
   show (TPair t1 t2) = "(" ++ show t1 ++ ", " ++ show t2 ++ ")"
   show (TList t) = "[" ++ show t ++ "]"
   show (TRef t) = "<" ++ show t ++ ">"
+  show (TData s) = s
+  show TUnknown = "TUnknown"
 
 instance Show Value where
   show (VInt n)      = show n
@@ -124,7 +151,7 @@ instance Show (Exp_ t) where
   show (ELet l e1 e2) = "let " ++ show l ++ " = " ++ show e1 ++ " in " ++ show e2
   show (EFun l e) = "lambda " ++ show l ++ " -> " ++ show e
   show (ERec f l v) = "fix " ++ show f ++ " " ++ show l ++ " -> " ++ show v
-  show (EFunApp e1 e2) = show e1 ++ " " ++ show e2
+  show (EFunApp e1 e2) = "(lambda " ++ show e1 ++ " " ++ show e2 ++ ")"
   show (EIf e1 e2 e3) = "if " ++ show e1 ++ " then  " ++ show e2 ++ " else " ++ show e3
   show (EFloat f) = show f
   show (EVar s)   = s
@@ -146,6 +173,8 @@ instance Show (Exp_ t) where
   show (EBang e) = "!" ++ show e
   show (ESeq e1 e2) = show e1 ++ " ; " ++ show e2
   show (EWhile e1 e2) = "while " ++ show e1 ++ " do " ++ show e2 ++ " end"
+  show (EMatch e ps) = "case " ++ show e ++ " of " ++ show ps ++ " end"
+  show (ECtor id' bs) = id' ++ (if not $ null bs then show bs else "")
 
 instance Eq Typ where
   TInt == TInt = True
@@ -156,4 +185,6 @@ instance Eq Typ where
   (TPair t1 t2) == (TPair t1' t2') = t1 == t1' && t2 == t2'
   (TList t1) == (TList t2) = t1 == t2
   (TRef t1) == (TRef t2) = t1 == t2
+  (TData s1) == (TData s2) = s1 == s2
+  TUnknown == TUnknown = True
   _ == _ = False
