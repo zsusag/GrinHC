@@ -64,7 +64,7 @@ typecheck' g (PosExp p _ (EFunApp e1 e2)) = let te1 = typecheck' g e1
   in case te1 of
        (TArr t1 t2) -> if te2 == t1
          then t2
-         else posError p "Type Error fun app" (": expected type of " ++ show e2 ++ " to be " ++ show t1 ++ " but was actually " ++ show te2)
+         else posError p "Type Error" (": expected type of " ++ show e2 ++ " to be " ++ show t1 ++ " but was actually " ++ show te2)
        _ -> posError p "Type Error" (": expected " ++ show e1 ++ " to be a function with an arrow type but actually had type " ++ show te1)
 typecheck' g (PosExp _ _ (EPair e1 e2)) = let te1 = typecheck' g e1
                                               te2 = typecheck' g e2
