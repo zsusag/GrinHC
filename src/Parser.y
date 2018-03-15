@@ -88,7 +88,7 @@ ctors : ctors ctor              { $2:$1 }
       | ctor                    { [$1] }
 
 ctor :: { Ctor }
-ctor : '|' uid typs             { let s = extractVarToId $2 in (s, $3)}
+ctor : '|' uid typs             { let s = extractVarToId $2 in (s,$3)}
 
 exp :: { Exp Pos }
 exp : exp '+' exp            { PosExp (tokenPosition $2) TUnit (EOp Plus $1 $3) }

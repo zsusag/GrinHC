@@ -9,7 +9,6 @@ import Control.Monad
 import System.IO
 import System.Directory
 import System.Exit
-import Debug.Trace
 
 import Lexer
 import Parser

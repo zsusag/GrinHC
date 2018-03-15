@@ -46,6 +46,7 @@ data Value = VInt {-# UNPACK #-} !Int
   | VPair !Value !Value
   | VList !(Exp Pos)
   | VPtr !Int
+  | VData !Id ![Value]
   deriving (Generic, Eq)
 
 -- Credit: Andrew Mack for helping me scraping my boilerplate
@@ -127,6 +128,10 @@ instance Show Value where
   show (VPair v1 v2) = "(" ++ show v1 ++ ", " ++ show v2 ++ ")"
   show (VList v)     = "[" ++ show v ++ "]"
   show (VPtr v)      = "Ptr(" ++ show v ++ ")"
+  show (VData x vs)  = let showValues :: [Value] -> String
+                           showValues (v:vs') = show v ++ " " ++ showValues vs'
+                           showValues [] = ""
+                       in x ++ " " ++ showValues vs
 
 instance Show Op where
   show Plus  = "+"

@@ -2,7 +2,6 @@ module Eval where
 
 import Lang
 import Error
-import Debug.Trace
 import qualified Data.Map.Strict as Map
 
 evaluate :: Exp Pos -> Bool -> Env -> IO ()
@@ -16,7 +15,7 @@ evaluate e b env
                in evaluate e' b env'
 
 step :: (Exp Pos, Env) -> (Exp Pos, Env)
-step (PosExp p _ (EVar _),_) = posError p "Evaluation Error" ": dangling identifier"
+step (PosExp p _ (EVar s),_) = posError p "Evaluation Error" (": dangling identifier" ++ s)
 step (e@(PosExp p _ (EFun e1 _)),env) = case e1 of
   (PosExp _ _ (EVar _)) -> (e,env)
   _ -> posError p "Evaluation Error" ": variable for function is not an identifier"
@@ -143,6 +142,41 @@ step (PosExp p t (ESeq e1 e2),env)
   | otherwise = let (e1',env') = step (e1,env)
                 in (PosExp p t (ESeq e1' e2),env')
 step (PosExp p t e@(EWhile e1 e2), env) = (PosExp p t (EIf e1 (PosExp p t (ESeq e2 (PosExp p t e))) (PosExp p t EUnit)),env)
+step (PosExp p t (ECtor s es),env) = (PosExp p t (ECtor s $ map (\e -> let (e',_) = step (e,env) in e') es), env)
+step (PosExp p t (EMatch e bs), env)
+  | isValue e = case e of
+      (PosExp _ _ (EPair e1 e2)) -> let checkPairPattern :: Branch Pos -> Bool
+                                        checkPairPattern (p',_) = case p' of
+                                          (PPair _) -> True
+                                          PWildCard -> True
+                                          _ -> False
+        in case head $ filter checkPairPattern bs of
+        (PPair (PVar x1, PVar x2),e') -> let e1' = extractExp e1
+                                             e2' = extractExp e2
+                                             var1 = EVar x1
+                                             var2 = EVar x2
+          in step (PosExp p t $ extractExp $ subst e1' var1 $ subst e2' var2 e', env)
+        _ -> posError p "Evaluation Error" ": cannot match a pair using a non-pair pattern"
+      (PosExp _ _ (ECtor x es)) -> let checkCtorPattern :: Branch Pos -> Bool
+                                       checkCtorPattern (p',_) = case p' of
+                                         (PCtor x' _) -> x == x'
+                                         PWildCard -> True
+                                         _ -> False
+        in case head $ filter checkCtorPattern bs of
+        (PCtor _ ps, e') ->
+          let zipFn :: Pattern -> Exp Pos -> (Exp_ Pos, Exp_ Pos)
+              zipFn (PVar s) e'' = (EVar s, extractExp e'')
+              zipFn _ _ = posError p "Evaluation Error" ": pattern has non variable identifiers in constructor"
+              substCtorVars :: [(Exp_ Pos, Exp_ Pos)] -> Exp Pos -> Exp Pos
+              substCtorVars ((var,val):es') e'' = subst val var (substCtorVars es' e'')
+              substCtorVars [] e''              = e''
+          in let (e'',env') = step (substCtorVars (zipWith zipFn ps es) e',env)
+             in (e'',env')
+        (PWildCard, e') -> (PosExp p t $ extractExp e', env)
+        _ -> posError p "Evaluation Error" ": cannot match a constructor using a non-constructor pattern"
+      _ -> posError p "Evaluation Error" ": cannot pattern match on an expression that isn't a constructor, pair, or list"
+  | otherwise = let (e',env') = step (e,env)
+                in (PosExp p t (EMatch e' bs), env')
 step e = e
 
 subst :: Exp_ Pos -> Exp_ Pos -> Exp Pos -> Exp Pos
@@ -177,22 +211,44 @@ subst val var (PosExp p t e) = if e == var
   (EBang e') -> PosExp p t $ EBang $ subst val var e'
   (ESeq e1 e2) -> PosExp p t $ ESeq (subst val var e1) (subst val var e2)
   (EWhile e1 e2) -> PosExp p t $ EWhile (subst val var e1) (subst val var e2)
+  (ECtor x es) -> PosExp p t $ ECtor x $ map (subst val var) es
+  (EMatch e' bs) ->
+    let mapFn :: Branch Pos -> Branch Pos
+        mapFn (PWildCard,e'') = (PWildCard, subst val var e'')
+        mapFn (PVar s,e'') = if s == extractVar var
+                             then (PVar s, e'')
+                             else (PVar s, subst val var e'')
+        mapFn (p'@(PPair (p1,p2)),e'') =
+          if elem (extractVar var) (extractPatVars p1) ||
+             elem (extractVar var) (extractPatVars p2)
+          then (p', e'')
+          else (p', subst val var e'')
+        mapFn (p'@(PList (p1,p2)),e'') =
+          if elem (extractVar var) (extractPatVars p1) ||
+             elem (extractVar var) (extractPatVars p2)
+          then (p', e'')
+          else (p', subst val var e'')
+        mapFn (p'@(PCtor _ _), e'') = if extractVar var `elem` extractPatVars p'
+          then (p', e'')
+          else (p', subst val var e'')
+    in PosExp p t $ EMatch (subst val var e') $ map mapFn bs
   _ -> PosExp p t e
 
 extractExp :: Exp Pos -> Exp_ Pos
-extractExp (PosExp _ _ e@(EInt _)) = e
-extractExp (PosExp _ _ e@(EFloat _)) = e
-extractExp (PosExp _ _ e@(EBool _)) = e
-extractExp (PosExp _ _ e@(EFun _ _)) = e
-extractExp (PosExp _ _ e@ERec{}) = e
-extractExp (PosExp _ _ ENaN) = ENaN
-extractExp (PosExp _ _ EUnit) = EUnit
-extractExp (PosExp _ _ e@(EPair _ _)) = e
-extractExp (PosExp _ _ ENil) = ENil
-extractExp (PosExp _ _ e@(ECons _ _)) = e
-extractExp (PosExp _ _ e@(EPtr _)) = e
-extractExp _ = error "This should never happen..."
+extractExp (PosExp _ _ e) = e
 
+extractVar :: Exp_ Pos -> Id
+extractVar (EVar s) = s
+extractVar _ = error "This shouldn't happen"
+
+extractPatVars :: Pattern -> [Id]
+extractPatVars PWildCard = []
+extractPatVars (PVar s) = [s]
+extractPatVars (PPair (p1,p2)) = extractPatVars p1 ++ extractPatVars p2
+extractPatVars (PList (p1,p2)) = extractPatVars p1 ++ extractPatVars p2
+extractPatVars (PCtor _ ps) = let f :: [Pattern] -> [Id]
+                                  f = foldr ((++) . extractPatVars) []
+                              in f ps
 expToValue :: Exp Pos -> Value
 expToValue (PosExp _ _ (EInt n)) = VInt n
 expToValue (PosExp _ _ (EFloat f)) = VFloat f
@@ -205,6 +261,7 @@ expToValue (PosExp _ _ (EPair e1 e2)) = VPair (expToValue e1) (expToValue e2)
 expToValue e@(PosExp _ _ ENil) = VList e
 expToValue e@(PosExp _ _ (ECons _ _)) = VList e
 expToValue (PosExp _ _ (EPtr n)) = VPtr n
+expToValue (PosExp _ _ (ECtor x es)) = VData x $ map expToValue es
 expToValue (PosExp p _ _ ) = posError p "Evaluation Error" ": expression is not a value"
 
 isValue :: Exp Pos -> Bool
@@ -219,6 +276,7 @@ isValue (PosExp _ _ (EPair e1 e2)) = isValue e1 && isValue e2
 isValue (PosExp _ _ ENil) = True
 isValue (PosExp _ _ (ECons e1 e2)) = isValue e1 && isValue e2
 isValue (PosExp _ _ (EPtr _)) = True
+isValue (PosExp _ _ (ECtor _ es)) = length es == length (filter isValue es)
 isValue _ = False
 
 intOp :: Pos -> Op -> Int -> Int -> Exp Pos

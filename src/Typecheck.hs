@@ -4,7 +4,6 @@ import qualified Data.Map.Strict as Map
 
 import Error
 import Lang
-import Debug.Trace
 
 typecheck :: Prog -> IO Typ
 typecheck (d,e) = return $ typecheck' (processDecls d) e
@@ -26,13 +25,13 @@ typecheck' g (PosExp p t (EFun (PosExp _ _ (EVar s)) e2)) = case t of
                   in if t2 == te2
                      then t
                      else posError p "Type Error" (": " ++ show e2 ++ " should have type " ++ show t2 ++ " but has type " ++ show te2)
-  _ -> posError p "Type Error" ": fuction does not have an input and output type"
+  _ -> posError p "Type Error" ": function does not have an input and output type"
 typecheck' g (PosExp p t (ERec (PosExp _ t' (EVar f)) (PosExp _ _ (EVar s)) e2)) = case t of
   (TArr t1 t2) -> let te2 = typecheck' (Map.insert s t1 (Map.insert f t' g)) e2
                   in if t2 == te2
                      then t
                      else posError p "Type Error" (": " ++ show e2 ++ " should have type " ++ show t2 ++ " but has type " ++ show te2)
-  _ -> posError p "Type Error" ": fuction does not have an input and output type"
+  _ -> posError p "Type Error" ": function does not have an input and output type"
 typecheck' g (PosExp p _ (EOp op e1 e2))
   | t1 == TInt && t2 == TInt = checkOp TInt
   | t1 == TFloat && (t2 == TFloat || t2 == TInt) = checkOp TFloat
@@ -65,7 +64,7 @@ typecheck' g (PosExp p _ (EFunApp e1 e2)) = let te1 = typecheck' g e1
   in case te1 of
        (TArr t1 t2) -> if te2 == t1
          then t2
-         else posError p "Type Error" (": expected type of " ++ show e2 ++ " to be " ++ show t1 ++ " but was actually " ++ show te2)
+         else posError p "Type Error fun app" (": expected type of " ++ show e2 ++ " to be " ++ show t1 ++ " but was actually " ++ show te2)
        _ -> posError p "Type Error" (": expected " ++ show e1 ++ " to be a function with an arrow type but actually had type " ++ show te1)
 typecheck' g (PosExp _ _ (EPair e1 e2)) = let te1 = typecheck' g e1
                                               te2 = typecheck' g e2
@@ -112,7 +111,7 @@ typecheck' g (PosExp p _ (EWhile e1 _)) = case typecheck' g e1 of
   _ -> posError p "Type Error" ": expected a boolean value in guard of while loop"
 typecheck' g (PosExp p _ (ECtor i es)) = let t = constructCtorTyp es
   in case Map.lookup i g of
-       (Just t') -> if trace (show t ++ " / " ++ show t') $ t == t'
+       (Just t') -> if t == t'
                     then case t' of
                            (TArr _ t''@(TData _)) -> t''
                            (TData _) -> t'
@@ -189,7 +188,7 @@ typecheckPattern g t ((p,e):bs) prev pos = case t of
                 (PVar s) -> s
                 PWildCard -> "_"
                 _ -> posError pos "Type Error" ": constructor invocation has non-id variable"
-              ts = arrToList t1
+              ts = reverse $ arrToList t1
               lt = zip (map f ps) ts
           in if length lt /= length ts
              then posError pos "Type Error" ": constructor invocation is partially applied"
