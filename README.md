@@ -4,6 +4,8 @@ A compiler written in [Haskell](https://www.haskell.org) for the CSC-312 course 
 ## Supported Grammar
 Currently, GrinHC supports only the following grammar:
 ```
+d ::= data x = [| ci x1 x2 x3 ...]
+
 e ::= n | (e) | e1 + e2 | e1 - e2 | e1 * e2 | e1 / e2
     | e1 % e2 | true | false | e1 <= e2 | e1 == e2
     | e1 >= e2 | e1 < e2 | e1 > e2 | if e1 then e2 else e3
@@ -11,8 +13,11 @@ e ::= n | (e) | e1 + e2 | e1 - e2 | e1 * e2 | e1 / e2
     | fix f (x::t1)::t2 => e | e1 e2 | () | (e1, e2) | fst e | snd e
     | [] :: t | e1:e2 | head e | tail e | empty e
     | ref e | e1 := e2 | !e | e1 ; e2 | while e1 do e2 end
+    | case e of [pi -> ( ei )] end
 
-t ::= Int | Bool | Float | Unit | t1 -> t2 | (t1, t2) | [t] | <t>
+t ::= Int | Bool | Float | Unit | t1 -> t2 | (t1, t2) | [t] | <t> | D
+
+p ::= (x1,x2) | C x1 x2 x3 ... 
 ```
 where `n` is an integer literal, `x` is a variable identifier of the form
 ```
@@ -23,6 +28,12 @@ where `n` is an integer literal, `x` is a variable identifier of the form
 [0-9]+.[0-9]+
 ```
 and `NaN` as defined in [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754).
+
+`D` is the type of a ADT declaration
+
+`d` is a declaration which currently only supports abstract data type declarations.
+
+`p` is a pattern which is a matching over pairs and abstract data types. Lists are forthcoming.
 
 ## Building and Running with Stack
 ### Installing Stack
@@ -76,6 +87,15 @@ $ stack test
 ```
 
 ## Changelog
+### [final-project] - 2018-03-16
+#### New Features
+* Added ability to declare and instantiate custom algebraic data types
+* Added pattern matching over pairs and algebraic data types
+#### Changes to Existing Features
+* Added a new type, `D`, which signifies the type of an algebraic data type named `D` where `D` is any uppercase identifier
+* Expanded test suite to test invocations of algebraic data types and pattern matching over pairs and algebraic data types
+#### Known Bugs
+* Pattern matching over lists does not work correctly right now unless you create a `Lst` algebraic data type
 ### [assignment-06] — 2018-03-07
 #### New Features
 * Added the concept of an environment to keep track of `ref`s (aka state eww).
