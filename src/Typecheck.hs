@@ -4,12 +4,13 @@ import qualified Data.Map.Strict as Map
 
 import Error
 import Lang
+import Debug.Trace
 
 typecheck :: Prog -> IO Typ
 typecheck (d,e) = return $ typecheck' (processDecls d) e
   where processDecls :: [Decl] -> Context
         processDecls [] = Map.empty
-        processDecls (DData _ cs:xs) = Map.union (Map.fromList cs) $ processDecls xs
+        processDecls (DData _ cs:xs) = Map.union (Map.fromList (trace (show cs) cs)) $ processDecls xs
 
 typecheck' :: Context -> Exp Pos -> Typ
 typecheck' _ (PosExp _ _ (EInt _)) = TInt
@@ -109,7 +110,18 @@ typecheck' g (PosExp _ _ (ESeq _ e2)) = typecheck' g e2
 typecheck' g (PosExp p _ (EWhile e1 _)) = case typecheck' g e1 of
   TBool -> TUnit
   _ -> posError p "Type Error" ": expected a boolean value in guard of while loop"
-typecheck' g (PosExp p _ (ECtor i es)) = let t = constructCtorTyp es
+typecheck' g (PosExp p _ (ECtor i es)) =
+  let t = case Map.lookup i g of
+        (Just (TData s)) ->
+          if null es
+          then TData s
+          else TArr (constructCtorTyp $ reverse es) $ TData s
+        (Just (TArr _ (TData s))) ->
+          if null es
+          then TData s
+          else TArr (constructCtorTyp $ reverse es) $ TData s
+        Nothing -> posError p "Type Error" ": constructor unknown"
+        _ -> posError p "Type Error" ": type of constructor is not given"
   in case Map.lookup i g of
        (Just t') -> if t == t'
                     then case t' of
@@ -119,12 +131,10 @@ typecheck' g (PosExp p _ (ECtor i es)) = let t = constructCtorTyp es
                     else posError p "Type Error" ": constructor invocation is not of the correct type"
        Nothing -> posError p "Type Error" ": constructor type unknown"
   where constructCtorTyp :: [Exp Pos] -> Typ
-        constructCtorTyp = foldl (\t1 t2 -> TArr t1 $ typecheck' g t2)
-          (case Map.lookup i g of
-             (Just (TData s)) -> TData s
-             (Just (TArr _ (TData s))) -> TData s
-             Nothing -> posError p "Type Error" ": constructor unknown"
-             _ -> posError p "Type Error" ": type of constructor is not given")
+        constructCtorTyp (e:es')
+          | null es' = typecheck' g e
+          | otherwise = TArr (constructCtorTyp es') $ typecheck' g e
+        constructCtorTyp [] = error "This shouldn't happen"
 typecheck' g (PosExp p _ (EMatch e bs)) = let t = typecheckPattern g (typecheck' g e) bs TUnknown p
   in case t of
     TUnknown -> posError p "Type Error" ": no patterns present within pattern matching"
