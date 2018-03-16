@@ -1,0 +1,1 @@
+let l = Cons[5,Cons[4,Cons[3,Cons[2,Cons[1,Nil]]]]] in let f = fix g ls -> case ls of [(PCtor "Cons" [PVar "x",PVar "ls'"],(x + (lambda g ls'))),(PCtor "Nil" [],0)] end in (lambda f l)

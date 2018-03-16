@@ -1,0 +1,2 @@
+case (5, 2) of [(PPair (PVar "n1",PVar "n2"),(n1 + n2)),(PWildCard,5)] end
+7

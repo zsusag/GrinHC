@@ -1,0 +1,5 @@
+[("Nil",Lst),("Cons",(TArr (TArr Int -> Lst) -> Lst))]
+let f = lambda x -> lambda ls -> Cons[x,ls] in (lambda (lambda f 4) Cons[3,Cons[2,Cons[1,Nil]]])
+(lambda (lambda lambda x -> lambda ls -> Cons[x,ls] 4) Cons[3,Cons[2,Cons[1,Nil]]])
+(lambda lambda ls -> Cons[4,ls] Cons[3,Cons[2,Cons[1,Nil]]])
+Cons 4 Cons 3 Cons 2 Cons 1 Nil     

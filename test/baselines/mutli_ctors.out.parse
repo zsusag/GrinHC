@@ -1,0 +1,1 @@
+let z = Third[5,2.3,3] in case z of [(PCtor "First" [PVar "x"],x),(PCtor "Second" [PVar "x1",PVar "x2"],(x1 + x2)),(PCtor "Third" [PVar "x1",PVar "x2",PVar "x3"],((x1 + x2) + x3)),(PCtor "Fourth" [PVar "x1",PVar "x2",PVar "x3",PVar "x4"],(((x1 + x2) + x3) + x4)),(PWildCard,3.2)] end

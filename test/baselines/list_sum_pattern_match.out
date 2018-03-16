@@ -1,0 +1,2 @@
+[("Nil",Lst),("Cons",(TArr (TArr Int -> Lst) -> Lst))]
+15

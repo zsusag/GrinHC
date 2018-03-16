@@ -1,0 +1,2 @@
+[("First",(TArr Float -> Ctor)),("Second",(TArr (TArr Int -> Float) -> Ctor)),("Third",(TArr (TArr (TArr Int -> Float) -> Int) -> Ctor)),("Fourth",(TArr (TArr (TArr (TArr Int -> Float) -> Int) -> Int) -> Ctor))]
+10.3

@@ -1,0 +1,11 @@
+data Lst =
+ | Nil
+ | Cons Int Lst
+
+let l :: Lst = Cons 5 (Cons 4 (Cons 3 (Cons 2 (Cons 1 (Nil))))) in
+let f :: Lst -> Int = fix g (ls::Lst) :: Int =>
+  case ls of
+   (Cons x ls') -> (x + g ls')
+   Nil          -> ( 0 )
+  end
+in f l

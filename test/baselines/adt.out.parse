@@ -1,0 +1,1 @@
+let f = lambda x -> lambda ls -> Cons[x,ls] in (lambda (lambda f 4) Cons[3,Cons[2,Cons[1,Nil]]])
